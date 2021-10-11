@@ -18,10 +18,18 @@ fn multiply_matrices_conventional(matrix_1: &Array2<i32>, matrix_2: &Array2<i32>
 }
 
 fn multiply_matrices_strassen(matrix_1: &Array2<i32>, matrix_2: &Array2<i32>) -> Array2<i32> {
+    multiply_matrices_strassen_threshold(matrix_1, matrix_2, 0)
+}
+
+fn multiply_matrices_strassen_threshold(matrix_1: &Array2<i32>, matrix_2: &Array2<i32>, threshold: usize) -> Array2<i32> {
     let n = matrix_1.shape()[0];
 
     if n == 1 {
         return arr2(&[[matrix_1[[0, 0]] * matrix_2[[0, 0]]]]);
+    }
+
+    if n <= threshold {
+        return multiply_matrices_conventional(matrix_1, matrix_2);
     }
 
     let matrix_1_slices = [
@@ -82,6 +90,14 @@ fn main() {
 
     let result = multiply_matrices_strassen(&matrix_1, &matrix_2);
     println!("Strassen result:\n{}", &result);
+
+    println!("Time: {}ns\n", now.elapsed().as_nanos());
+
+    // Strassen + threshold
+    let now = Instant::now();
+
+    let result = multiply_matrices_strassen_threshold(&matrix_1, &matrix_2, 4);
+    println!("Strassen threshold result:\n{}", &result);
 
     println!("Time: {}ns", now.elapsed().as_nanos());
 }
