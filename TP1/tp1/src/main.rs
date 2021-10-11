@@ -1,4 +1,8 @@
+use std::error::Error;
+use std::io::{BufReader, BufRead};
+use std::path::Path;
 use std::time::Instant;
+use std::fs::File;
 
 use ndarray::{arr2, concatenate, s, Array2, Axis};
 use structopt::StructOpt;
@@ -8,8 +12,15 @@ use cli_args::Cli;
 
 fn main() {
     let args = Cli::from_args();
+
+    // TODO: Cleanup
     println!("{}", args.show_result);
     println!("{}", args.show_exec_time);
+
+    let m1 = load_matrix(&args.matrix1_filename).expect("Error parsing matrix 1 from file");
+    println!("{}", m1);
+
+    // TODO: Logic based on arguments
 
     let matrix_1: Array2<i32> = arr2(&[[1, 2, 3, 4], [4, 5, 6, 7], [7, 8, 9, 10], [10, 11, 12, 14]]);
     let matrix_2: Array2<i32> = arr2(&[[1, 2, 3, 4], [4, 5, 6, 7], [7, 8, 9, 10], [10, 11, 12, 14]]);
@@ -37,6 +48,25 @@ fn main() {
     println!("Strassen threshold result:\n{}", &result);
 
     println!("Time: {}ns", now.elapsed().as_nanos());
+}
+
+fn load_matrix(filename: &Path) -> Result<Array2<i32>, Box<dyn Error>> {
+    let buffered = BufReader::new(File::open(filename)?);
+    let mut lines_it = buffered.lines().map(|l| l.unwrap());
+    
+    // Read matrix size
+    let first_line = lines_it.next().unwrap();
+    let matrix_size = usize::pow(2, first_line.trim().parse()?);
+
+    // Read matrix
+    let mut matrix: Array2<i32> = Array2::zeros((matrix_size, matrix_size));
+    for (i, line) in lines_it.enumerate() {
+        for (j, number) in line.split(char::is_whitespace).enumerate() {
+            matrix[[i, j]] = number.trim().parse()?;
+        }
+    }
+
+    Ok(matrix)
 }
 
 fn multiply_matrices_conventional(matrix_1: &Array2<i32>, matrix_2: &Array2<i32>) -> Array2<i32> {

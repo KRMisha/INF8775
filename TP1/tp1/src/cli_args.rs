@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::str::FromStr;
 use structopt::StructOpt;
 
@@ -28,11 +29,11 @@ pub struct Cli {
 
     /// Path to the first matrix file
     #[structopt(long = "e1", parse(from_os_str))]
-    pub matrix1_file_path: std::path::PathBuf,
+    pub matrix1_filename: PathBuf,
 
     /// Path to the second matrix file
     #[structopt(long = "e2", parse(from_os_str))]
-    pub matrix2_file_path: std::path::PathBuf,
+    pub matrix2_filename: PathBuf,
 
     /// Print the resulting matrix
     #[structopt(short = "p")]
