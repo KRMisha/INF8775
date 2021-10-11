@@ -2,6 +2,35 @@ use std::time::Instant;
 
 use ndarray::{arr2, concatenate, s, Array2, Axis};
 
+fn main() {
+    let matrix_1: Array2<i32> = arr2(&[[1, 2, 3, 4], [4, 5, 6, 7], [7, 8, 9, 10], [10, 11, 12, 14]]);
+    let matrix_2: Array2<i32> = arr2(&[[1, 2, 3, 4], [4, 5, 6, 7], [7, 8, 9, 10], [10, 11, 12, 14]]);
+
+    // Conventional
+    let now = Instant::now();
+
+    let result = multiply_matrices_conventional(&matrix_1, &matrix_2);
+
+    println!("Conventional result:\n{}", &result);
+    println!("Time: {}ns\n", now.elapsed().as_nanos());
+
+    // Strassen
+    let now = Instant::now();
+
+    let result = multiply_matrices_strassen(&matrix_1, &matrix_2);
+    println!("Strassen result:\n{}", &result);
+
+    println!("Time: {}ns\n", now.elapsed().as_nanos());
+
+    // Strassen + threshold
+    let now = Instant::now();
+
+    let result = multiply_matrices_strassen_threshold(&matrix_1, &matrix_2, 4);
+    println!("Strassen threshold result:\n{}", &result);
+
+    println!("Time: {}ns", now.elapsed().as_nanos());
+}
+
 fn multiply_matrices_conventional(matrix_1: &Array2<i32>, matrix_2: &Array2<i32>) -> Array2<i32> {
     let n = matrix_1.shape()[0];
     let mut result = Array2::zeros((n, n));
@@ -71,33 +100,4 @@ fn multiply_matrices_strassen_threshold(matrix_1: &Array2<i32>, matrix_2: &Array
     ];
 
     concatenated_result
-}
-
-fn main() {
-    let matrix_1: Array2<i32> = arr2(&[[1, 2, 3, 4], [4, 5, 6, 7], [7, 8, 9, 10], [10, 11, 12, 14]]);
-    let matrix_2: Array2<i32> = arr2(&[[1, 2, 3, 4], [4, 5, 6, 7], [7, 8, 9, 10], [10, 11, 12, 14]]);
-
-    // Conventional
-    let now = Instant::now();
-
-    let result = multiply_matrices_conventional(&matrix_1, &matrix_2);
-
-    println!("Conventional result:\n{}", &result);
-    println!("Time: {}ns\n", now.elapsed().as_nanos());
-
-    // Strassen
-    let now = Instant::now();
-
-    let result = multiply_matrices_strassen(&matrix_1, &matrix_2);
-    println!("Strassen result:\n{}", &result);
-
-    println!("Time: {}ns\n", now.elapsed().as_nanos());
-
-    // Strassen + threshold
-    let now = Instant::now();
-
-    let result = multiply_matrices_strassen_threshold(&matrix_1, &matrix_2, 4);
-    println!("Strassen threshold result:\n{}", &result);
-
-    println!("Time: {}ns", now.elapsed().as_nanos());
 }
