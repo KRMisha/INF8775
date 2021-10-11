@@ -1,8 +1,16 @@
 use std::time::Instant;
 
 use ndarray::{arr2, concatenate, s, Array2, Axis};
+use structopt::StructOpt;
+
+mod cli_args;
+use cli_args::Cli;
 
 fn main() {
+    let args = Cli::from_args();
+    println!("{}", args.show_result);
+    println!("{}", args.show_exec_time);
+
     let matrix_1: Array2<i32> = arr2(&[[1, 2, 3, 4], [4, 5, 6, 7], [7, 8, 9, 10], [10, 11, 12, 14]]);
     let matrix_2: Array2<i32> = arr2(&[[1, 2, 3, 4], [4, 5, 6, 7], [7, 8, 9, 10], [10, 11, 12, 14]]);
 
