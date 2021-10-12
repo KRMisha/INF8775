@@ -8,52 +8,46 @@ use ndarray::{arr2, concatenate, s, Array2, Axis};
 use structopt::StructOpt;
 
 mod cli_args;
-use cli_args::Cli;
+use cli_args::{Cli, Algorithm};
+
+const THRESHOLD: usize = 4;
 
 fn main() {
+    // Parse args
     let args = Cli::from_args();
 
-    // TODO: Cleanup
-    println!("{}", args.show_result);
-    println!("{}", args.show_exec_time);
+    // Load matrices
+    let matrix_1 = load_matrix(&args.matrix1_filename).expect("Error parsing matrix 1 from file");
+    let matrix_2 = load_matrix(&args.matrix2_filename).expect("Error parsing matrix 2 from file");
 
-    let m1 = load_matrix(&args.matrix1_filename).expect("Error parsing matrix 1 from file");
-    println!("{}", m1);
+    assert_eq!(matrix_1.shape(), matrix_2.shape(), "Incompatible shapes between matrices.");
 
-    // TODO: Logic based on arguments
-
-    let matrix_1: Array2<i32> = arr2(&[[1, 2, 3, 4], [4, 5, 6, 7], [7, 8, 9, 10], [10, 11, 12, 14]]);
-    let matrix_2: Array2<i32> = arr2(&[[1, 2, 3, 4], [4, 5, 6, 7], [7, 8, 9, 10], [10, 11, 12, 14]]);
-
-    // Conventional
+    // Start clock
     let now = Instant::now();
 
-    let result = multiply_matrices_conventional(&matrix_1, &matrix_2);
+    // Execute selected algorithm
+    let result = match args.algorithm {
+        Algorithm::Conventional => multiply_matrices_conventional(&matrix_1, &matrix_2),
+        Algorithm::Strassen => multiply_matrices_strassen(&matrix_1, &matrix_2),
+        Algorithm::StrassenThreshold => multiply_matrices_strassen_threshold(&matrix_1, &matrix_2, THRESHOLD),
+    };
 
-    println!("Conventional result:\n{}", &result);
-    println!("Time: {}ns\n", now.elapsed().as_nanos());
+    // Calculate elapsed time
+    let elapsed_ms = now.elapsed().as_secs_f64() * 1000.0;
 
-    // Strassen
-    let now = Instant::now();
+    if args.show_result {
+        print_matrix(&result)
+    }
 
-    let result = multiply_matrices_strassen(&matrix_1, &matrix_2);
-    println!("Strassen result:\n{}", &result);
-
-    println!("Time: {}ns\n", now.elapsed().as_nanos());
-
-    // Strassen + threshold
-    let now = Instant::now();
-
-    let result = multiply_matrices_strassen_threshold(&matrix_1, &matrix_2, 4);
-    println!("Strassen threshold result:\n{}", &result);
-
-    println!("Time: {}ns", now.elapsed().as_nanos());
+    if args.show_exec_time {
+        println!("{}", elapsed_ms);
+    }
 }
 
 fn load_matrix(filename: &Path) -> Result<Array2<i32>, Box<dyn Error>> {
     let buffered = BufReader::new(File::open(filename)?);
     let mut lines_it = buffered.lines().map(|l| l.unwrap());
-    
+
     // Read matrix size
     let first_line = lines_it.next().unwrap();
     let matrix_size = usize::pow(2, first_line.trim().parse()?);
@@ -138,4 +132,15 @@ fn multiply_matrices_strassen_threshold(matrix_1: &Array2<i32>, matrix_2: &Array
     ];
 
     concatenated_result
+}
+
+fn print_matrix(matrix: &Array2<i32>) {
+    let n = matrix.shape()[0];
+    for i in 0..n {
+        let row_str = matrix.row(i)
+            .map(|x| x.to_string())
+            .to_vec()
+            .join(" ");
+        println!("{}", row_str)
+    }
 }
