@@ -1,14 +1,13 @@
-use std::error::Error;
-use std::io::{BufReader, BufRead};
-use std::path::Path;
 use std::time::Instant;
-use std::fs::File;
 
-use ndarray::{arr2, concatenate, s, Array2, Axis};
+use ndarray::{arr2, Array2, Axis, concatenate, s};
 use structopt::StructOpt;
 
 mod cli_args;
-use cli_args::{Cli, Algorithm};
+mod matrix_utils;
+
+use cli_args::{Algorithm, Cli};
+use matrix_utils::{load_matrix, print_matrix};
 
 const THRESHOLD: usize = 4;
 
@@ -42,25 +41,6 @@ fn main() {
     if args.show_exec_time {
         println!("{}", elapsed_ms);
     }
-}
-
-fn load_matrix(filename: &Path) -> Result<Array2<i32>, Box<dyn Error>> {
-    let buffered = BufReader::new(File::open(filename)?);
-    let mut lines_it = buffered.lines().map(|l| l.unwrap());
-
-    // Read matrix size
-    let first_line = lines_it.next().unwrap();
-    let matrix_size = usize::pow(2, first_line.trim().parse()?);
-
-    // Read matrix
-    let mut matrix: Array2<i32> = Array2::zeros((matrix_size, matrix_size));
-    for (i, line) in lines_it.enumerate() {
-        for (j, number) in line.split(char::is_whitespace).enumerate() {
-            matrix[[i, j]] = number.trim().parse()?;
-        }
-    }
-
-    Ok(matrix)
 }
 
 fn multiply_matrices_conventional(matrix_1: &Array2<i32>, matrix_2: &Array2<i32>) -> Array2<i32> {
@@ -132,15 +112,4 @@ fn multiply_matrices_strassen_threshold(matrix_1: &Array2<i32>, matrix_2: &Array
     ];
 
     concatenated_result
-}
-
-fn print_matrix(matrix: &Array2<i32>) {
-    let n = matrix.shape()[0];
-    for i in 0..n {
-        let row_str = matrix.row(i)
-            .map(|x| x.to_string())
-            .to_vec()
-            .join(" ");
-        println!("{}", row_str)
-    }
 }
