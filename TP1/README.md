@@ -14,3 +14,9 @@ cd data
 cd implementation
 cargo build --release
 ```
+
+## Analyse execution time results
+
+```sh
+./analyze.py
+```
