@@ -42,4 +42,8 @@ pub struct Cli {
     /// Prints execution time in ns
     #[structopt(short = "t")]
     pub show_exec_time: bool,
+
+    /// Overrides the default matrix size threshold for the Strassen algorithm
+    #[structopt(long = "threshold", default_value = "4")]
+    pub threshold: usize,
 }

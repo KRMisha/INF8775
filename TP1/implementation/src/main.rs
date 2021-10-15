@@ -9,8 +9,6 @@ mod matrix_utils;
 use cli_args::{Algorithm, Cli};
 use matrix_utils::{load_matrix, print_matrix};
 
-const THRESHOLD: usize = 4;
-
 fn main() {
     // Parse args
     let args = Cli::from_args();
@@ -28,7 +26,7 @@ fn main() {
     let result = match args.algorithm {
         Algorithm::Conventional => multiply_matrices_conventional(&matrix_1, &matrix_2),
         Algorithm::Strassen => multiply_matrices_strassen(&matrix_1, &matrix_2),
-        Algorithm::StrassenThreshold => multiply_matrices_strassen_threshold(&matrix_1, &matrix_2, THRESHOLD),
+        Algorithm::StrassenThreshold => multiply_matrices_strassen_threshold(&matrix_1, &matrix_2, args.threshold),
     };
 
     // Calculate elapsed time
