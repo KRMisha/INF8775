@@ -18,7 +18,7 @@ cargo build --release
 ## Compare execution time for different Strassen thresholds
 
 ```sh
-./analyze.py thresholds
+./analyze.py threshold
 ```
 
 ## Compare execution time for algorithms
