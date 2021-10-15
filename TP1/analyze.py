@@ -10,7 +10,7 @@ import pandas as pd
 import seaborn as sns
 
 DATA_PATH = Path('data')
-GRAPH_OUTPUT_PATH = Path('analysis')
+ANALYSIS_OUTPUT_PATH = Path('analysis')
 ALGORITHMS = {
     'Conventional': 'conv',
     'Strassen': 'strassen',
@@ -18,7 +18,7 @@ ALGORITHMS = {
 }
 
 
-def measure_execution_times(algorithms, extra_args=[]):
+def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
     matrix_filenames = [x for x in DATA_PATH.iterdir() if x.is_file()]
     matrix_n_sizes = sorted(set(int(re.search(r'ex(\d*?)_', filename.name).group(1)) for filename in matrix_filenames))
 
@@ -30,10 +30,10 @@ def measure_execution_times(algorithms, extra_args=[]):
 
         for n in matrix_n_sizes:
             matrix_n_size_filenames = sorted(DATA_PATH.glob(f'ex{n}_*'))
-            matrix_filename_pairs = itertools.combinations(matrix_n_size_filenames, 2)
+            matrix_filename_pairs = list(itertools.combinations(matrix_n_size_filenames, 2))
 
             execution_times_ms = []
-            for matrix_1_filename, matrix_2_filename in matrix_filename_pairs:
+            for matrix_1_filename, matrix_2_filename in matrix_filename_pairs * trial_count:
                 result = subprocess.run(
                     ['./tp1.sh', '-a', algorithm_arg, '-e1', matrix_1_filename, '-e2', matrix_2_filename, '-t', *extra_args],
                     stdout=subprocess.PIPE,
@@ -54,9 +54,9 @@ def measure_execution_times(algorithms, extra_args=[]):
 def compare_strassen_thresholds():
     results = {}
 
-    for threshold in [2 ** i for i in range(5, 9)]:
+    for threshold in [2 ** i for i in range(2, 9)]:
         print(f'Threshold: {threshold}')
-        df = measure_execution_times({'StrassenThreshold': 'strassenSeuil'}, ['--threshold', str(threshold)])
+        df = measure_execution_times({'StrassenThreshold': 'strassenSeuil'}, trial_count=1, extra_args=['--threshold', str(threshold)])
         results[threshold] = df['StrassenThreshold']
 
     df = pd.DataFrame(results)
@@ -64,19 +64,41 @@ def compare_strassen_thresholds():
 
 
 def main():
-    GRAPH_OUTPUT_PATH.mkdir(exist_ok=True)
+    sns.set_theme(style='ticks', palette='pastel')
 
+    ANALYSIS_OUTPUT_PATH.mkdir(exist_ok=True)
+
+    # Strassen threshold evaluation
     df = compare_strassen_thresholds()
     print('Execution times of the StrassenThreshold algorithm with different thresholds')
     print(df)
+
+    with open(ANALYSIS_OUTPUT_PATH / 'strassen_thresholds.md', 'w') as file:
+        file.write(df.to_markdown())
+
+    plt.figure()
+    ax = sns.lineplot(data=df[-3:]) # Only show results for the three biggest matrices
+    ax.set_title('Execution time for various Strassen thresholds')
+    ax.set(xlabel='N', ylabel='Execution time (ms)')
+    ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
+    plt.savefig(ANALYSIS_OUTPUT_PATH / 'strassen_thresholds.png')
+
     print('\n--------------------\n')
 
+    # Algorithm comparison
     df = measure_execution_times(ALGORITHMS)
     print('Execution times of the three different algorithms')
     print(df)
 
-    sns.lineplot(data=df)
-    plt.savefig(GRAPH_OUTPUT_PATH / 'execution_times.png')
+    with open(ANALYSIS_OUTPUT_PATH / 'execution_times.md', 'w') as file:
+        file.write(df.to_markdown())
+
+    plt.figure()
+    ax = sns.lineplot(data=df)
+    ax.set_title('Execution time for each algorithm')
+    ax.set(xlabel='N', ylabel='Execution time (ms)')
+    ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
+    plt.savefig(ANALYSIS_OUTPUT_PATH / 'execution_times.png')
 
 
 if __name__ == '__main__':
