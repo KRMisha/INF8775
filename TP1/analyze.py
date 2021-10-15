@@ -51,8 +51,7 @@ def main():
 
         plt.figure()
         ax = sns.lineplot(data=df[-3:]) # Only show results for the three biggest matrices
-        ax.set_title('Execution time for various Strassen thresholds')
-        ax.set(xlabel='N', ylabel='Execution time (ms)')
+        ax.set(title='Execution time for various Strassen thresholds', xlabel='N', ylabel='Execution time (ms)')
         ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
         plt.savefig(ANALYSIS_OUTPUT_PATH / 'strassen_thresholds.png', bbox_inches='tight')
 
@@ -71,8 +70,7 @@ def main():
 
         plt.figure()
         ax = sns.lineplot(data=df)
-        ax.set_title('Execution time for each algorithm')
-        ax.set(xlabel='N', ylabel='Execution time (ms)')
+        ax.set(title='Execution time for each algorithm', xlabel='N', ylabel='Execution time (ms)')
         ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
         plt.savefig(ANALYSIS_OUTPUT_PATH / 'execution_times.png', bbox_inches='tight')
 
