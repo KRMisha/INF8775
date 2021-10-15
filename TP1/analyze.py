@@ -52,14 +52,14 @@ def measure_execution_times(algorithms, extra_args=[]):
 
 
 def compare_strassen_thresholds():
-    strassen_threshold_execution_times = {}
+    results = {}
 
     for threshold in [2 ** i for i in range(5, 9)]:
         print(f'Threshold: {threshold}')
         df = measure_execution_times({'StrassenThreshold': 'strassenSeuil'}, ['--threshold', str(threshold)])
-        strassen_threshold_execution_times[threshold] = df['StrassenThreshold']
+        results[threshold] = df['StrassenThreshold']
 
-    df = pd.DataFrame(strassen_threshold_execution_times)
+    df = pd.DataFrame(results)
     return df
 
 
