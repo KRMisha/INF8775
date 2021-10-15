@@ -16,6 +16,11 @@ ALGORITHMS = {
     'Strassen': 'strassen',
     'StrassenThreshold': 'strassenSeuil',
 }
+MAX_N_SIZES = {
+    'Conventional': None,
+    'Strassen': 9,
+    'StrassenThreshold': None,
+}
 
 
 def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
@@ -26,9 +31,13 @@ def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
 
     for algorithm_name, algorithm_arg in algorithms.items():
         print('Measuring execution time for', algorithm_name)
+
         results[algorithm_name] = {}
 
         for n in matrix_n_sizes:
+            if MAX_N_SIZES[algorithm_name] is not None and n >= MAX_N_SIZES[algorithm_name]:
+                break
+
             matrix_n_size_filenames = sorted(DATA_PATH.glob(f'ex{n}_*'))
             matrix_filename_pairs = list(itertools.combinations(matrix_n_size_filenames, 2))
 
