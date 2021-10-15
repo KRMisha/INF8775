@@ -44,6 +44,6 @@ pub struct Cli {
     pub show_exec_time: bool,
 
     /// Overrides the default matrix size threshold for the Strassen algorithm
-    #[structopt(long = "threshold", default_value = "4")]
+    #[structopt(long = "threshold", default_value = "16")]
     pub threshold: usize,
 }
