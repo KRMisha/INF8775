@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import itertools
 from pathlib import Path
 import re
@@ -21,6 +22,68 @@ MAX_N_SIZES = {
     'Strassen': 9,
     'StrassenThreshold': None,
 }
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(title='mode', dest='mode', required=True)
+    subparsers.add_parser('threshold', help='Evaluate the performance of different threshold for the StrassenThreshold algorithm')
+    subparsers.add_parser('benchmark', help='Evaluate the performance of the conventional, Strassen, and Strassen with threshold algorithms')
+    subparsers.add_parser('power-test', help='Generate a graph for the power test based on the benchmark results')
+    subparsers.add_parser('ratio-test', help='Generate a graph for the ratio test based on the benchmark results')
+    subparsers.add_parser('constant-test', help='Generate a graph for the constant test based on the benchmark results')
+    args = parser.parse_args()
+
+    sns.set_theme(style='ticks', palette='pastel')
+
+    ANALYSIS_OUTPUT_PATH.mkdir(exist_ok=True)
+
+    # Strassen threshold evaluation
+    if args.mode == 'threshold':
+        df = compare_strassen_thresholds()
+        print('Execution times of the StrassenThreshold algorithm with different thresholds')
+        print(df)
+
+        with open(ANALYSIS_OUTPUT_PATH / 'strassen_thresholds.md', 'w') as file:
+            file.write(df.to_markdown())
+
+        plt.figure()
+        ax = sns.lineplot(data=df[-3:]) # Only show results for the three biggest matrices
+        ax.set_title('Execution time for various Strassen thresholds')
+        ax.set(xlabel='N', ylabel='Execution time (ms)')
+        ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
+        plt.savefig(ANALYSIS_OUTPUT_PATH / 'strassen_thresholds.png', bbox_inches='tight')
+
+        return
+
+    # Algorithm comparison
+    if args.mode == 'benchmark':
+        df = measure_execution_times(ALGORITHMS)
+        print('Execution times of the three different algorithms')
+        print(df)
+
+        with open(ANALYSIS_OUTPUT_PATH / 'execution_times.md', 'w') as file:
+            file.write(df.to_markdown())
+        
+        df.to_csv(ANALYSIS_OUTPUT_PATH / 'execution_times.csv')
+
+        plt.figure()
+        ax = sns.lineplot(data=df)
+        ax.set_title('Execution time for each algorithm')
+        ax.set(xlabel='N', ylabel='Execution time (ms)')
+        ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
+        plt.savefig(ANALYSIS_OUTPUT_PATH / 'execution_times.png', bbox_inches='tight')
+
+        return
+    
+    if args.mode in ('power-test', 'ratio-test', 'constant-test'):
+        benchmark_results_filename = ANALYSIS_OUTPUT_PATH / 'execution_times.csv'
+        try:
+            df = pd.read_csv(ANALYSIS_OUTPUT_PATH / 'execution_times.csv')
+        except FileNotFoundError:
+            print(f'Benchmark results could not be read (\'{benchmark_results_filename}\'). Please run the script with the \'benchmark\' mode and try again.')
+    
+    # TODO: Power, ratio and constant tests
 
 
 def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
@@ -70,44 +133,6 @@ def compare_strassen_thresholds():
 
     df = pd.DataFrame(results)
     return df
-
-
-def main():
-    sns.set_theme(style='ticks', palette='pastel')
-
-    ANALYSIS_OUTPUT_PATH.mkdir(exist_ok=True)
-
-    # Strassen threshold evaluation
-    df = compare_strassen_thresholds()
-    print('Execution times of the StrassenThreshold algorithm with different thresholds')
-    print(df)
-
-    with open(ANALYSIS_OUTPUT_PATH / 'strassen_thresholds.md', 'w') as file:
-        file.write(df.to_markdown())
-
-    plt.figure()
-    ax = sns.lineplot(data=df[-3:]) # Only show results for the three biggest matrices
-    ax.set_title('Execution time for various Strassen thresholds')
-    ax.set(xlabel='N', ylabel='Execution time (ms)')
-    ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
-    plt.savefig(ANALYSIS_OUTPUT_PATH / 'strassen_thresholds.png', bbox_inches='tight')
-
-    print('\n--------------------\n')
-
-    # Algorithm comparison
-    df = measure_execution_times(ALGORITHMS)
-    print('Execution times of the three different algorithms')
-    print(df)
-
-    with open(ANALYSIS_OUTPUT_PATH / 'execution_times.md', 'w') as file:
-        file.write(df.to_markdown())
-
-    plt.figure()
-    ax = sns.lineplot(data=df)
-    ax.set_title('Execution time for each algorithm')
-    ax.set(xlabel='N', ylabel='Execution time (ms)')
-    ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
-    plt.savefig(ANALYSIS_OUTPUT_PATH / 'execution_times.png', bbox_inches='tight')
 
 
 if __name__ == '__main__':
