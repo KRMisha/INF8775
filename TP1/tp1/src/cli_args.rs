@@ -35,11 +35,11 @@ pub struct Cli {
     #[structopt(long = "e2", parse(from_os_str))]
     pub matrix2_filename: PathBuf,
 
-    /// Print the resulting matrix
+    /// Prints the resulting matrix
     #[structopt(short = "p")]
     pub show_result: bool,
 
-    /// Print execution time in ns
+    /// Prints execution time in ns
     #[structopt(short = "t")]
     pub show_exec_time: bool,
 }

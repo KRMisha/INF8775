@@ -19,7 +19,7 @@ fn main() {
     let matrix_1 = load_matrix(&args.matrix1_filename).expect("Error parsing matrix 1 from file");
     let matrix_2 = load_matrix(&args.matrix2_filename).expect("Error parsing matrix 2 from file");
 
-    assert_eq!(matrix_1.shape(), matrix_2.shape(), "Incompatible shapes between matrices.");
+    assert_eq!(matrix_1.shape(), matrix_2.shape(), "Incompatible shapes between matrices");
 
     // Start clock
     let now = Instant::now();
