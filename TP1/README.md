@@ -15,8 +15,14 @@ cd implementation
 cargo build --release
 ```
 
-## Analyze execution time results
+## Compare execution time for different Strassen thresholds
 
 ```sh
-./analyze.py
+./analyze.py thresholds
+```
+
+## Compare execution time for algorithms
+
+```sh
+./analyze.py benchmark
 ```
