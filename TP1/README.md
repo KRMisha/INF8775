@@ -24,5 +24,5 @@ cargo build --release
 ## Compare execution time for algorithms
 
 ```sh
-./analyze.py benchmark
+./analyze.py measure
 ```

@@ -27,11 +27,11 @@ MAX_N_SIZES = {
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(title='mode', dest='mode', required=True)
-    subparsers.add_parser('threshold', help='Compare the performance of different thresholds for the Strassen with threshold algorithm')
-    subparsers.add_parser('benchmark', help='Compare the performance of the conventional, Strassen, and Strassen with threshold algorithms')
-    subparsers.add_parser('power-test', help='Generate a graph for the power test based on the benchmark results')
-    subparsers.add_parser('ratio-test', help='Generate a graph for the ratio test based on the benchmark results')
-    subparsers.add_parser('constant-test', help='Generate a graph for the constant test based on the benchmark results')
+    subparsers.add_parser('threshold', help='Compare the execution time of different thresholds for the Strassen with threshold algorithm')
+    subparsers.add_parser('measure', help='Compare the execution time of the conventional, Strassen, and Strassen with threshold algorithms')
+    subparsers.add_parser('power-test', help='Generate a graph for the power test based on the execution time results')
+    subparsers.add_parser('ratio-test', help='Generate a graph for the ratio test based on the execution time results')
+    subparsers.add_parser('constant-test', help='Generate a graph for the constant test based on the execution time results')
     args = parser.parse_args()
 
     sns.set_theme(style='ticks', palette='pastel')
@@ -58,7 +58,7 @@ def main():
         return
 
     # Algorithm comparison
-    if args.mode == 'benchmark':
+    if args.mode == 'measure':
         df = measure_execution_times(ALGORITHMS)
         print('Execution times of the three different algorithms')
         print(df)
@@ -77,11 +77,11 @@ def main():
         return
     
     if args.mode in ('power-test', 'ratio-test', 'constant-test'):
-        benchmark_results_filename = ANALYSIS_OUTPUT_PATH / 'execution_times.csv'
+        execution_time_results_filename = ANALYSIS_OUTPUT_PATH / 'execution_times.csv'
         try:
             df = pd.read_csv(ANALYSIS_OUTPUT_PATH / 'execution_times.csv')
         except FileNotFoundError:
-            print(f'Benchmark results could not be read (\'{benchmark_results_filename}\'). Please run the script with the \'benchmark\' mode and try again.')
+            print(f'Execution time results could not be read (\'{execution_time_results_filename}\'). Please run the script with the \'measure\' mode and try again.')
     
     # TODO: Power, ratio and constant tests
 
