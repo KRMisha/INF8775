@@ -5,7 +5,7 @@
 ```sh
 mkdir data
 cd data
-../inst_gen.py -S 2 -t 8 -n 8 -r 8775
+../inst_gen.py -S 2 -t 8 -n 5 -r 8775
 ```
 
 ## Build implementation
