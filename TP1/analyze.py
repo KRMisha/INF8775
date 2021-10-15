@@ -47,7 +47,7 @@ def main():
         print(df)
 
         with open(ANALYSIS_OUTPUT_PATH / 'strassen_thresholds.md', 'w') as file:
-            file.write(df.to_markdown())
+            file.write(df.to_markdown() + '\n')
 
         plt.figure()
         ax = sns.lineplot(data=df[-3:]) # Only show results for the three biggest matrices
@@ -64,7 +64,7 @@ def main():
         print(df)
 
         with open(ANALYSIS_OUTPUT_PATH / 'execution_times.md', 'w') as file:
-            file.write(df.to_markdown())
+            file.write(df.to_markdown() + '\n')
         
         df.to_csv(ANALYSIS_OUTPUT_PATH / 'execution_times.csv')
 
