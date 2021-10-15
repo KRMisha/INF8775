@@ -5,7 +5,7 @@
 ```sh
 mkdir data
 cd data
-../inst_gen.py -S 2 -t 8 -n 5 -r 8775
+../inst_gen.py -S 5 -t 7 -n 5 -r 8775
 ```
 
 ## Build implementation
@@ -15,7 +15,7 @@ cd implementation
 cargo build --release
 ```
 
-## Analyse execution time results
+## Analyze execution time results
 
 ```sh
 ./analyze.py
