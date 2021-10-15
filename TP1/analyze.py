@@ -27,8 +27,8 @@ MAX_N_SIZES = {
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(title='mode', dest='mode', required=True)
-    subparsers.add_parser('threshold', help='Evaluate the performance of different threshold for the StrassenThreshold algorithm')
-    subparsers.add_parser('benchmark', help='Evaluate the performance of the conventional, Strassen, and Strassen with threshold algorithms')
+    subparsers.add_parser('threshold', help='Compare the performance of different thresholds for the Strassen with threshold algorithm')
+    subparsers.add_parser('benchmark', help='Compare the performance of the conventional, Strassen, and Strassen with threshold algorithms')
     subparsers.add_parser('power-test', help='Generate a graph for the power test based on the benchmark results')
     subparsers.add_parser('ratio-test', help='Generate a graph for the ratio test based on the benchmark results')
     subparsers.add_parser('constant-test', help='Generate a graph for the constant test based on the benchmark results')
@@ -40,6 +40,8 @@ def main():
 
     # Strassen threshold evaluation
     if args.mode == 'threshold':
+        MAX_N_SIZES['StrassenThreshold'] = 9
+
         df = compare_strassen_thresholds()
         print('Execution times of the StrassenThreshold algorithm with different thresholds')
         print(df)
@@ -98,7 +100,7 @@ def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
         results[algorithm_name] = {}
 
         for n in matrix_n_sizes:
-            if MAX_N_SIZES[algorithm_name] is not None and n >= MAX_N_SIZES[algorithm_name]:
+            if MAX_N_SIZES[algorithm_name] is not None and n > MAX_N_SIZES[algorithm_name]:
                 break
 
             matrix_n_size_filenames = sorted(DATA_PATH.glob(f'ex{n}_*'))
@@ -128,7 +130,7 @@ def compare_strassen_thresholds():
 
     for threshold in [2 ** i for i in range(2, 9)]:
         print(f'Threshold: {threshold}')
-        df = measure_execution_times({'StrassenThreshold': 'strassenSeuil'}, trial_count=1, extra_args=['--threshold', str(threshold)])
+        df = measure_execution_times({'StrassenThreshold': 'strassenSeuil'}, trial_count=3, extra_args=['--threshold', str(threshold)])
         results[threshold] = df['StrassenThreshold']
 
     df = pd.DataFrame(results)
