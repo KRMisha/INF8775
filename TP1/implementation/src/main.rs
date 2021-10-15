@@ -86,13 +86,13 @@ fn multiply_matrices_strassen_threshold(matrix_1: &Array2<i32>, matrix_2: &Array
 
     // M
     let intermediate_matrices = [
-        multiply_matrices_strassen(&(&matrix_1_slices[0] + &matrix_1_slices[3]), &(&matrix_2_slices[0] + &matrix_2_slices[3])), // M1 = (A1,1 + A2,2) * (B1,1 + B2,2)
-        multiply_matrices_strassen(&(&matrix_1_slices[2] + &matrix_1_slices[3]), &matrix_2_slices[0].to_owned()),               // M2 = (A2,1 + A2,2) * B1,1
-        multiply_matrices_strassen(&matrix_1_slices[0].to_owned(), &(&matrix_2_slices[1] - &matrix_2_slices[3])),               // M3 = A1,1 * (B1,2 - B2,2)
-        multiply_matrices_strassen(&matrix_1_slices[3].to_owned(), &(&matrix_2_slices[2] - &matrix_2_slices[0])),               // M4 = A2,2 * (B2,1 - B1,1)
-        multiply_matrices_strassen(&(&matrix_1_slices[0] + &matrix_1_slices[1]), &matrix_2_slices[3].to_owned()),               // M5 = (A1,1 + A1,2) * B2,2
-        multiply_matrices_strassen(&(&matrix_1_slices[2] - &matrix_1_slices[0]), &(&matrix_2_slices[0] + &matrix_2_slices[1])), // M6 = (A2,1 - A1,1) * (B1,1 + B1,2)
-        multiply_matrices_strassen(&(&matrix_1_slices[1] - &matrix_1_slices[3]), &(&matrix_2_slices[2] + &matrix_2_slices[3])), // M7 = (A1,2 - A2,2) * (B2,1 + B2,2)
+        multiply_matrices_strassen_threshold(&(&matrix_1_slices[0] + &matrix_1_slices[3]), &(&matrix_2_slices[0] + &matrix_2_slices[3]), threshold), // M1 = (A1,1 + A2,2) * (B1,1 + B2,2)
+        multiply_matrices_strassen_threshold(&(&matrix_1_slices[2] + &matrix_1_slices[3]), &matrix_2_slices[0].to_owned(), threshold),               // M2 = (A2,1 + A2,2) * B1,1
+        multiply_matrices_strassen_threshold(&matrix_1_slices[0].to_owned(), &(&matrix_2_slices[1] - &matrix_2_slices[3]), threshold),               // M3 = A1,1 * (B1,2 - B2,2)
+        multiply_matrices_strassen_threshold(&matrix_1_slices[3].to_owned(), &(&matrix_2_slices[2] - &matrix_2_slices[0]), threshold),               // M4 = A2,2 * (B2,1 - B1,1)
+        multiply_matrices_strassen_threshold(&(&matrix_1_slices[0] + &matrix_1_slices[1]), &matrix_2_slices[3].to_owned(), threshold),               // M5 = (A1,1 + A1,2) * B2,2
+        multiply_matrices_strassen_threshold(&(&matrix_1_slices[2] - &matrix_1_slices[0]), &(&matrix_2_slices[0] + &matrix_2_slices[1]), threshold), // M6 = (A2,1 - A1,1) * (B1,1 + B1,2)
+        multiply_matrices_strassen_threshold(&(&matrix_1_slices[1] - &matrix_1_slices[3]), &(&matrix_2_slices[2] + &matrix_2_slices[3]), threshold), // M7 = (A1,2 - A2,2) * (B2,1 + B2,2)
     ];
 
     // C
