@@ -82,6 +82,16 @@ def main():
             wide_df = pd.read_csv(ANALYSIS_OUTPUT_PATH / 'execution_times.csv', index_col=0)
         except FileNotFoundError:
             print(f'Execution time results could not be read (\'{execution_time_results_filename}\'). Please run the script with the \'measure\' mode and try again.')
+        
+        long_df = pd.melt(wide_df.reset_index(), id_vars=['N'], var_name='Algorithm', value_name='ExecutionTime')
+        long_df['2^N'] = 2 ** long_df['N']
+
+        # TODO: Fix log-log regression bug and show equations
+        plt.figure()
+        sns.lmplot(x='2^N', y='ExecutionTime', hue='Algorithm', data=long_df, truncate=True)
+        plt.xscale('log', base=2)
+        plt.yscale('log', base=2)
+        plt.savefig(ANALYSIS_OUTPUT_PATH / 'power_test.png', bbox_inches='tight')
     
     # TODO: Power, ratio and constant tests
 
