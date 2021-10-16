@@ -79,7 +79,7 @@ def main():
     if args.mode in ('power-test', 'ratio-test', 'constant-test'):
         execution_time_results_filename = ANALYSIS_OUTPUT_PATH / 'execution_times.csv'
         try:
-            df = pd.read_csv(ANALYSIS_OUTPUT_PATH / 'execution_times.csv')
+            wide_df = pd.read_csv(ANALYSIS_OUTPUT_PATH / 'execution_times.csv', index_col=0)
         except FileNotFoundError:
             print(f'Execution time results could not be read (\'{execution_time_results_filename}\'). Please run the script with the \'measure\' mode and try again.')
     
@@ -119,7 +119,7 @@ def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
 
         print()
 
-    df = pd.DataFrame(results)
+    df = pd.DataFrame(results).rename_axis('N')
     return df
 
 
@@ -131,7 +131,7 @@ def compare_strassen_thresholds():
         df = measure_execution_times({'StrassenThreshold': 'strassenSeuil'}, trial_count=3, extra_args=['--threshold', str(threshold)])
         results[threshold] = df['StrassenThreshold']
 
-    df = pd.DataFrame(results)
+    df = pd.DataFrame(results).rename_axis('N')
     return df
 
 
