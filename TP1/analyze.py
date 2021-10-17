@@ -7,7 +7,9 @@ import re
 import statistics
 import subprocess
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+from scipy import stats
 import seaborn as sns
 
 DATA_PATH = Path('data')
@@ -83,17 +85,34 @@ def main():
         except FileNotFoundError:
             print(f'Execution time results could not be read (\'{execution_time_results_filename}\'). Please run the script with the \'measure\' mode and try again.')
         
+        # Convert dataframe from wide form to long form for plotting with seaborn's lmplot
         long_df = pd.melt(wide_df.reset_index(), id_vars=['N'], var_name='Algorithm', value_name='ExecutionTime')
         long_df['2^N'] = 2 ** long_df['N']
+        long_df['log2(2^N)'] = np.log2(long_df['2^N'])
+        long_df['log2(ExecutionTime)'] = np.log2(long_df['ExecutionTime'])
 
-        # TODO: Fix log-log regression bug and show equations
+        # Calculate linear regression equation for power test
+        slope_intercepts = {}
+        for algorithm_name in ALGORITHMS:
+            long_df_filtered = long_df[long_df['Algorithm'] == algorithm_name].dropna()
+            slope, intercept, _, _, _ = stats.linregress(x=np.log2(long_df_filtered['2^N']), y=np.log2(long_df_filtered['ExecutionTime']))
+            slope_intercepts[algorithm_name] = (slope, intercept)
+
+        # Plot log-log plot for power test
         plt.figure()
-        sns.lmplot(x='2^N', y='ExecutionTime', hue='Algorithm', data=long_df, truncate=True)
-        plt.xscale('log', base=2)
-        plt.yscale('log', base=2)
+        ax = sns.lmplot(x='log2(2^N)', y='log2(ExecutionTime)', hue='Algorithm', data=long_df)
+        legend_labels = plt.legend().get_texts()
+        for i, algorithm_name in enumerate(ALGORITHMS):
+            slope, intercept = slope_intercepts[algorithm_name]
+            legend_labels[i].set_text(fr'$\log_2(y) = {slope:.2f}\log_2(x){"+" if intercept > 0 else ""}{intercept:.2f}$')
+        ax.set(title='Power test', xlabel=r'$\log_2(\mathrm{matrix\ size}) = \log_2(2^N) = N$', ylabel=r'$\log_2(\mathrm{execution\ time})$')
         plt.savefig(ANALYSIS_OUTPUT_PATH / 'power_test.png', bbox_inches='tight')
     
     # TODO: Power, ratio and constant tests
+
+    # TODO: Other titles and axes on graphs using LaTeX notation
+    # TODO: Make plot size larger
+    # TODO: Translate plots in French
 
 
 def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
