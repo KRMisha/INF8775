@@ -94,7 +94,7 @@ def main():
         slope_intercepts = {}
         for algorithm_name in ALGORITHMS:
             long_df_filtered = long_df[long_df['Algorithm'] == algorithm_name].dropna()
-            slope, intercept, _, _, _ = stats.linregress(x=np.log2(long_df_filtered['2^N']), y=np.log2(long_df_filtered['ExecutionTime']))
+            slope, intercept, _, _, _ = stats.linregress(x=long_df_filtered['log2(2^N)'], y=long_df_filtered['log2(ExecutionTime)'])
             slope_intercepts[algorithm_name] = (slope, intercept)
 
         # Power test
@@ -109,7 +109,7 @@ def main():
 
         # Ratio test
         for algorithm_name in ALGORITHMS:
-            long_df_filtered = long_df[long_df['Algorithm'] == algorithm_name].copy()
+            long_df_filtered = long_df[long_df['Algorithm'] == algorithm_name].dropna()
             power = slope_intercepts[algorithm_name][0] # TODO: Check if this should use theoretical complexity instead
             long_df_filtered['y/h(x)'] = long_df_filtered['ExecutionTime'] / long_df_filtered['2^N'] ** power
 
@@ -119,7 +119,22 @@ def main():
                 ax.set(title=f'Test du rapport pour {algorithm_name}', xlabel=r'$\mathrm{taille\ de\ la\ matrice} = 2^N$', ylabel=fr'$\mathrm{{temps\ d\'exécution}}\ /\ N^{{{power}}}$')
                 plt.savefig(ANALYSIS_OUTPUT_PATH / f'ratio_test_{algorithm_name.lower()}.png', bbox_inches='tight')
 
-        # TODO: Constants test
+        # Constants test
+        for algorithm_name in ALGORITHMS:
+            long_df_filtered = long_df[long_df['Algorithm'] == algorithm_name].dropna()
+            power = slope_intercepts[algorithm_name][0] # TODO: Check if this should use theoretical complexity instead
+            long_df_filtered['h(x)'] = long_df_filtered['2^N'] ** power
+
+            slope, intercept, _, _, _ = stats.linregress(x=long_df_filtered['h(x)'], y=long_df_filtered['ExecutionTime'])
+
+            plt.figure()
+            ax = sns.lmplot(
+                x='h(x)', y='ExecutionTime', data=long_df_filtered,
+                line_kws={'label': fr'$y = {slope:.4} \cdot x^{{{power:.4f}}}{"+" if intercept > 0 else ""}{intercept:.4f}$'}
+            )
+            plt.legend()
+            ax.set(title=f'Test des constantes pour {algorithm_name}', xlabel=fr'$\mathrm{{taille\ de\ la\ matrice}}^{{{power}}}$', ylabel='temps d\'exécution')
+            plt.savefig(ANALYSIS_OUTPUT_PATH / f'constants_test_{algorithm_name.lower()}.png', bbox_inches='tight')
 
 def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
     matrix_filenames = [x for x in DATA_PATH.iterdir() if x.is_file()]
