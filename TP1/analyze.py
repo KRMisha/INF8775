@@ -105,19 +105,13 @@ def run_complexity_subcommand():
     long_df['log2(2^N)'] = np.log2(long_df['2^N'])
     long_df['log2(ExecutionTime)'] = np.log2(long_df['ExecutionTime'])
 
-    # Calculate linear regression equation for power test
-    slope_intercepts = {}
-    for algorithm_name in ALGORITHMS:
-        long_df_filtered = long_df[long_df['Algorithm'] == algorithm_name].dropna()
-        slope, intercept, _, _, _ = stats.linregress(x=long_df_filtered['log2(2^N)'], y=long_df_filtered['log2(ExecutionTime)'])
-        slope_intercepts[algorithm_name] = (slope, intercept)
-
     # Power test
     plt.figure()
     ax = sns.lmplot(x='log2(2^N)', y='log2(ExecutionTime)', hue='Algorithm', data=long_df) # Log-log plot
     legend_labels = plt.legend().get_texts()
-    for i, algorithm_name in enumerate(ALGORITHMS):
-        slope, intercept = slope_intercepts[algorithm_name]
+    for i, algorithm_name in enumerate(ALGORITHMS): # Calculate linear regression equation
+        long_df_filtered = long_df[long_df['Algorithm'] == algorithm_name].dropna()
+        slope, intercept, _, _, _ = stats.linregress(x=long_df_filtered['log2(2^N)'], y=long_df_filtered['log2(ExecutionTime)'])
         legend_labels[i].set_text(fr'$\log_2(y) = {slope:.4f}\log_2(x){"+" if intercept > 0 else ""}{intercept:.2f}$')
     ax.set(
         title='Test de puissance',
