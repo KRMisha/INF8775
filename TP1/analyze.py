@@ -36,7 +36,7 @@ def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(title='mode', dest='mode', required=True)
     subparsers.add_parser('threshold', help='Compare the execution time of different thresholds for the Strassen with threshold algorithm').set_defaults(func=run_threshold_subcommand)
-    subparsers.add_parser('measure', help='Compare the execution time of the conventional, Strassen, and Strassen with threshold algorithms').set_defaults(func=run_measure_subcommand)
+    subparsers.add_parser('measure', help='Measure and save the execution times for the conventional, Strassen, and Strassen with threshold algorithms').set_defaults(func=run_measure_subcommand)
     subparsers.add_parser('complexity', help='Generate graphs for the power, ratio and constants tests based on the execution time results').set_defaults(func=run_complexity_subcommand)
     args = parser.parse_args()
 

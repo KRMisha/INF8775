@@ -21,7 +21,7 @@ cargo build --release
 ./analyze.py threshold
 ```
 
-## Compare execution time for algorithms
+## Measure and save execution times for algorithms
 
 ```sh
 ./analyze.py measure
