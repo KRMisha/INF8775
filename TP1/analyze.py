@@ -44,7 +44,7 @@ def main():
     ANALYSIS_OUTPUT_PATH.mkdir(exist_ok=True)
 
     args.func()
-        
+
 
 def run_threshold_subcommand():
     MAX_N_SIZES['StrassenThreshold'] = 9
@@ -58,7 +58,11 @@ def run_threshold_subcommand():
 
     plt.figure()
     ax = sns.lineplot(data=df[-3:]) # Only show results for the three biggest matrices
-    ax.set(title='Temps d\'exécution pour différents seuils avec l\'algorithme de Strassen', xlabel=r'$N\quad(\mathrm{taille\ de\ la\ matrice} = 2^N$)', ylabel='Temps d\'exécution (ms)')
+    ax.set(
+        title='Temps d\'exécution pour différents seuils avec l\'algorithme de Strassen',
+        xlabel=r'$N\quad(\mathrm{taille\ de\ la\ matrice} = 2^N$)',
+        ylabel='Temps d\'exécution (ms)',
+    )
     ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
     plt.savefig(ANALYSIS_OUTPUT_PATH / 'strassen_thresholds.png', bbox_inches='tight')
 
@@ -75,17 +79,25 @@ def run_measure_subcommand():
 
     plt.figure()
     ax = sns.lineplot(data=df)
-    ax.set(title='Temps d\'exécution pour chaque algorithme', xlabel=r'$N\quad(\mathrm{taille\ de\ la\ matrice} = 2^N$)', ylabel='Temps d\'exécution (ms)')
+    ax.set(
+        title='Temps d\'exécution pour chaque algorithme',
+        xlabel=r'$N\quad(\mathrm{taille\ de\ la\ matrice} = 2^N$)',
+        ylabel='Temps d\'exécution (ms)',
+    )
     ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
     plt.savefig(ANALYSIS_OUTPUT_PATH / 'execution_times.png', bbox_inches='tight')
 
 
 def run_complexity_subcommand():
+    # Load execution time results
     execution_time_results_filename = ANALYSIS_OUTPUT_PATH / 'execution_times.csv'
     try:
         wide_df = pd.read_csv(ANALYSIS_OUTPUT_PATH / 'execution_times.csv', index_col=0)
     except FileNotFoundError:
-        print(f'Execution time results could not be read (\'{execution_time_results_filename}\'). Please run the script with the \'measure\' mode and try again.')
+        print(
+            f'Execution time results could not be read (\'{execution_time_results_filename}\'). '
+            f'Please run the script with the \'measure\' mode and try again.',
+        )
 
     # Convert dataframe from wide form to long form for plotting with seaborn's lmplot
     long_df = pd.melt(wide_df.reset_index(), id_vars=['N'], var_name='Algorithm', value_name='ExecutionTime')
@@ -107,7 +119,11 @@ def run_complexity_subcommand():
     for i, algorithm_name in enumerate(ALGORITHMS):
         slope, intercept = slope_intercepts[algorithm_name]
         legend_labels[i].set_text(fr'$\log_2(y) = {slope:.4f}\log_2(x){"+" if intercept > 0 else ""}{intercept:.2f}$')
-    ax.set(title='Test de puissance', xlabel=r'$\log_2(\mathrm{taille\ de\ la\ matrice}) = \log_2(2^N) = N$', ylabel=r'$\log_2(\mathrm{temps\ d\'exécution})$')
+    ax.set(
+        title='Test de puissance',
+        xlabel=r'$\log_2(\mathrm{taille\ de\ la\ matrice}) = \log_2(2^N) = N$',
+        ylabel=r'$\log_2(\mathrm{temps\ d\'exécution})$',
+    )
     plt.savefig(ANALYSIS_OUTPUT_PATH / 'power_test.png', bbox_inches='tight')
 
     # Ratio test
@@ -119,7 +135,11 @@ def run_complexity_subcommand():
         with sns.axes_style('whitegrid'):
             plt.figure()
             ax = sns.lineplot(x='2^N', y='y/h(x)', data=long_df_filtered, marker='o')
-            ax.set(title=f'Test du rapport pour {algorithm_name}', xlabel=r'$\mathrm{taille\ de\ la\ matrice} = 2^N$', ylabel=fr'$\mathrm{{temps\ d\'exécution}}\ /\ N^{{{round(power, 4)}}}$')
+            ax.set(
+                title=f'Test du rapport pour {algorithm_name}',
+                xlabel=r'$\mathrm{taille\ de\ la\ matrice} = 2^N$',
+                ylabel=fr'$\mathrm{{temps\ d\'exécution}}\ /\ N^{{{round(power, 4)}}}$',
+            )
             plt.savefig(ANALYSIS_OUTPUT_PATH / f'ratio_test_{algorithm_name.lower()}.png', bbox_inches='tight')
 
     # Constants test
@@ -136,7 +156,11 @@ def run_complexity_subcommand():
             line_kws={'label': fr'$y = {slope:.4} \cdot x^{{{round(power, 4)}}}{"+" if intercept > 0 else ""}{intercept:.4f}$'}
         )
         plt.legend()
-        ax.set(title=f'Test des constantes pour {algorithm_name}', xlabel=fr'$\mathrm{{taille\ de\ la\ matrice}}^{{{round(power, 4)}}}$', ylabel='temps d\'exécution')
+        ax.set(
+            title=f'Test des constantes pour {algorithm_name}',
+            xlabel=fr'$\mathrm{{taille\ de\ la\ matrice}}^{{{round(power, 4)}}}$',
+            ylabel='temps d\'exécution',
+        )
         plt.savefig(ANALYSIS_OUTPUT_PATH / f'constants_test_{algorithm_name.lower()}.png', bbox_inches='tight')
 
 
