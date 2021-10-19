@@ -2,6 +2,7 @@
 
 import argparse
 import itertools
+import math
 from pathlib import Path
 import re
 import statistics
@@ -23,6 +24,11 @@ MAX_N_SIZES = {
     'Conventional': None,
     'Strassen': 9,
     'StrassenThreshold': None,
+}
+THEORETICAL_COMPLEXITY_POWERS = {
+    'Conventional': 3,
+    'Strassen': math.log2(7),
+    'StrassenThreshold': math.log2(7),
 }
 
 
@@ -103,26 +109,26 @@ def main():
         legend_labels = plt.legend().get_texts()
         for i, algorithm_name in enumerate(ALGORITHMS):
             slope, intercept = slope_intercepts[algorithm_name]
-            legend_labels[i].set_text(fr'$\log_2(y) = {slope:.2f}\log_2(x){"+" if intercept > 0 else ""}{intercept:.2f}$')
+            legend_labels[i].set_text(fr'$\log_2(y) = {slope:.4f}\log_2(x){"+" if intercept > 0 else ""}{intercept:.2f}$')
         ax.set(title='Test de puissance', xlabel=r'$\log_2(\mathrm{taille\ de\ la\ matrice}) = \log_2(2^N) = N$', ylabel=r'$\log_2(\mathrm{temps\ d\'exécution})$')
         plt.savefig(ANALYSIS_OUTPUT_PATH / 'power_test.png', bbox_inches='tight')
 
         # Ratio test
         for algorithm_name in ALGORITHMS:
             long_df_filtered = long_df[long_df['Algorithm'] == algorithm_name].dropna()
-            power = slope_intercepts[algorithm_name][0] # TODO: Check if this should use theoretical complexity instead
+            power = THEORETICAL_COMPLEXITY_POWERS[algorithm_name]
             long_df_filtered['y/h(x)'] = long_df_filtered['ExecutionTime'] / long_df_filtered['2^N'] ** power
 
             with sns.axes_style('whitegrid'):
                 plt.figure()
                 ax = sns.lineplot(x='2^N', y='y/h(x)', data=long_df_filtered, marker='o')
-                ax.set(title=f'Test du rapport pour {algorithm_name}', xlabel=r'$\mathrm{taille\ de\ la\ matrice} = 2^N$', ylabel=fr'$\mathrm{{temps\ d\'exécution}}\ /\ N^{{{power}}}$')
+                ax.set(title=f'Test du rapport pour {algorithm_name}', xlabel=r'$\mathrm{taille\ de\ la\ matrice} = 2^N$', ylabel=fr'$\mathrm{{temps\ d\'exécution}}\ /\ N^{{{round(power, 4)}}}$')
                 plt.savefig(ANALYSIS_OUTPUT_PATH / f'ratio_test_{algorithm_name.lower()}.png', bbox_inches='tight')
 
         # Constants test
         for algorithm_name in ALGORITHMS:
             long_df_filtered = long_df[long_df['Algorithm'] == algorithm_name].dropna()
-            power = slope_intercepts[algorithm_name][0] # TODO: Check if this should use theoretical complexity instead
+            power = THEORETICAL_COMPLEXITY_POWERS[algorithm_name]
             long_df_filtered['h(x)'] = long_df_filtered['2^N'] ** power
 
             slope, intercept, _, _, _ = stats.linregress(x=long_df_filtered['h(x)'], y=long_df_filtered['ExecutionTime'])
@@ -130,10 +136,10 @@ def main():
             plt.figure()
             ax = sns.lmplot(
                 x='h(x)', y='ExecutionTime', data=long_df_filtered,
-                line_kws={'label': fr'$y = {slope:.4} \cdot x^{{{power:.4f}}}{"+" if intercept > 0 else ""}{intercept:.4f}$'}
+                line_kws={'label': fr'$y = {slope:.4} \cdot x^{{{round(power, 4)}}}{"+" if intercept > 0 else ""}{intercept:.4f}$'}
             )
             plt.legend()
-            ax.set(title=f'Test des constantes pour {algorithm_name}', xlabel=fr'$\mathrm{{taille\ de\ la\ matrice}}^{{{power}}}$', ylabel='temps d\'exécution')
+            ax.set(title=f'Test des constantes pour {algorithm_name}', xlabel=fr'$\mathrm{{taille\ de\ la\ matrice}}^{{{round(power, 4)}}}$', ylabel='temps d\'exécution')
             plt.savefig(ANALYSIS_OUTPUT_PATH / f'constants_test_{algorithm_name.lower()}.png', bbox_inches='tight')
 
 def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
