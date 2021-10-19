@@ -107,6 +107,18 @@ def main():
         ax.set(title='Test de puissance', xlabel=r'$\log_2(\mathrm{taille\ de\ la\ matrice}) = \log_2(2^N) = N$', ylabel=r'$\log_2(\mathrm{temps\ d\'exécution})$')
         plt.savefig(ANALYSIS_OUTPUT_PATH / 'power_test.png', bbox_inches='tight')
 
+        # Ratio test
+        for algorithm_name in ALGORITHMS:
+            long_df_filtered = long_df[long_df['Algorithm'] == algorithm_name].copy()
+            power = slope_intercepts[algorithm_name][0] # TODO: Check if this should use theoretical complexity instead
+            long_df_filtered['y/h(x)'] = long_df_filtered['ExecutionTime'] / long_df_filtered['2^N'] ** power
+
+            with sns.axes_style('whitegrid'):
+                plt.figure()
+                ax = sns.lineplot(x='2^N', y='y/h(x)', data=long_df_filtered, marker='o')
+                ax.set(title=f'Test du rapport pour {algorithm_name}', xlabel=r'$\mathrm{taille\ de\ la\ matrice} = 2^N$', ylabel=fr'$\mathrm{{temps\ d\'exécution}}\ /\ N^{{{power}}}$')
+                plt.savefig(ANALYSIS_OUTPUT_PATH / f'ratio_test_{algorithm_name.lower()}.png', bbox_inches='tight')
+
         # TODO: Constants test
 
 def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
