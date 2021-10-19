@@ -26,3 +26,9 @@ cargo build --release
 ```sh
 ./analyze.py measure
 ```
+
+## Generate graphs and equations for power, ratio and constants tests
+
+```sh
+./analyze.py complexity
+```

@@ -31,9 +31,7 @@ def main():
     subparsers = parser.add_subparsers(title='mode', dest='mode', required=True)
     subparsers.add_parser('threshold', help='Compare the execution time of different thresholds for the Strassen with threshold algorithm')
     subparsers.add_parser('measure', help='Compare the execution time of the conventional, Strassen, and Strassen with threshold algorithms')
-    subparsers.add_parser('power-test', help='Generate a graph for the power test based on the execution time results')
-    subparsers.add_parser('ratio-test', help='Generate a graph for the ratio test based on the execution time results')
-    subparsers.add_parser('constant-test', help='Generate a graph for the constant test based on the execution time results')
+    subparsers.add_parser('complexity', help='Generate graphs for the power, ratio and constants tests based on the execution time results')
     args = parser.parse_args()
 
     sns.set_theme(style='ticks', palette='pastel')
@@ -78,7 +76,8 @@ def main():
 
         return
     
-    if args.mode in ('power-test', 'ratio-test', 'constant-test'):
+    # Algorithm complexity with power, ratio and constants tests
+    if args.mode == 'complexity':
         execution_time_results_filename = ANALYSIS_OUTPUT_PATH / 'execution_times.csv'
         try:
             wide_df = pd.read_csv(ANALYSIS_OUTPUT_PATH / 'execution_times.csv', index_col=0)
