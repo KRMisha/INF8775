@@ -51,7 +51,7 @@ def main():
 
         plt.figure()
         ax = sns.lineplot(data=df[-3:]) # Only show results for the three biggest matrices
-        ax.set(title='Execution time for various Strassen thresholds', xlabel='N', ylabel='Execution time (ms)')
+        ax.set(title='Temps d\'exécution pour différents seuils avec l\'algorithme de Strassen', xlabel=r'$N\quad(\mathrm{taille\ de\ la\ matrice} = 2^N$)', ylabel='Temps d\'exécution (ms)')
         ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
         plt.savefig(ANALYSIS_OUTPUT_PATH / 'strassen_thresholds.png', bbox_inches='tight')
 
@@ -65,17 +65,17 @@ def main():
 
         with open(ANALYSIS_OUTPUT_PATH / 'execution_times.md', 'w') as file:
             file.write(df.to_markdown() + '\n')
-        
+
         df.to_csv(ANALYSIS_OUTPUT_PATH / 'execution_times.csv')
 
         plt.figure()
         ax = sns.lineplot(data=df)
-        ax.set(title='Execution time for each algorithm', xlabel='N', ylabel='Execution time (ms)')
+        ax.set(title='Temps d\'exécution pour chaque algorithme', xlabel=r'$N\quad(\mathrm{taille\ de\ la\ matrice} = 2^N$)', ylabel='Temps d\'exécution (ms)')
         ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
         plt.savefig(ANALYSIS_OUTPUT_PATH / 'execution_times.png', bbox_inches='tight')
 
         return
-    
+
     # Algorithm complexity with power, ratio and constants tests
     if args.mode == 'complexity':
         execution_time_results_filename = ANALYSIS_OUTPUT_PATH / 'execution_times.csv'
@@ -83,7 +83,7 @@ def main():
             wide_df = pd.read_csv(ANALYSIS_OUTPUT_PATH / 'execution_times.csv', index_col=0)
         except FileNotFoundError:
             print(f'Execution time results could not be read (\'{execution_time_results_filename}\'). Please run the script with the \'measure\' mode and try again.')
-        
+
         # Convert dataframe from wide form to long form for plotting with seaborn's lmplot
         long_df = pd.melt(wide_df.reset_index(), id_vars=['N'], var_name='Algorithm', value_name='ExecutionTime')
         long_df['2^N'] = 2 ** long_df['N']
@@ -97,22 +97,17 @@ def main():
             slope, intercept, _, _, _ = stats.linregress(x=np.log2(long_df_filtered['2^N']), y=np.log2(long_df_filtered['ExecutionTime']))
             slope_intercepts[algorithm_name] = (slope, intercept)
 
-        # Plot log-log plot for power test
+        # Power test
         plt.figure()
-        ax = sns.lmplot(x='log2(2^N)', y='log2(ExecutionTime)', hue='Algorithm', data=long_df)
+        ax = sns.lmplot(x='log2(2^N)', y='log2(ExecutionTime)', hue='Algorithm', data=long_df) # Log-log plot
         legend_labels = plt.legend().get_texts()
         for i, algorithm_name in enumerate(ALGORITHMS):
             slope, intercept = slope_intercepts[algorithm_name]
             legend_labels[i].set_text(fr'$\log_2(y) = {slope:.2f}\log_2(x){"+" if intercept > 0 else ""}{intercept:.2f}$')
-        ax.set(title='Power test', xlabel=r'$\log_2(\mathrm{matrix\ size}) = \log_2(2^N) = N$', ylabel=r'$\log_2(\mathrm{execution\ time})$')
+        ax.set(title='Test de puissance', xlabel=r'$\log_2(\mathrm{taille\ de\ la\ matrice}) = \log_2(2^N) = N$', ylabel=r'$\log_2(\mathrm{temps\ d\'exécution})$')
         plt.savefig(ANALYSIS_OUTPUT_PATH / 'power_test.png', bbox_inches='tight')
-    
-    # TODO: Power, ratio and constant tests
 
-    # TODO: Other titles and axes on graphs using LaTeX notation
-    # TODO: Make plot size larger
-    # TODO: Translate plots in French
-
+        # TODO: Constants test
 
 def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
     matrix_filenames = [x for x in DATA_PATH.iterdir() if x.is_file()]
