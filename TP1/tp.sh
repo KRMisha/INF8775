@@ -8,4 +8,4 @@ for arg in "$@"; do
     args+=("${arg}")
 done
 
-exec ./implementation/target/release/tp1 "${args[@]}"
+exec ./tp "${args[@]}"

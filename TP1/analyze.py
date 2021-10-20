@@ -179,7 +179,7 @@ def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
             execution_times_ms = []
             for matrix_1_filename, matrix_2_filename in matrix_filename_pairs * trial_count:
                 result = subprocess.run(
-                    ['./tp1.sh', '-a', algorithm_arg, '-e1', matrix_1_filename, '-e2', matrix_2_filename, '-t', *extra_args],
+                    ['./tp.sh', '-a', algorithm_arg, '-e1', matrix_1_filename, '-e2', matrix_2_filename, '-t', *extra_args],
                     stdout=subprocess.PIPE,
                 )
                 execution_times_ms.append(float(result.stdout.decode('utf-8')))
