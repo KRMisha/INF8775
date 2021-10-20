@@ -8,4 +8,4 @@ for arg in "$@"; do
     args+=("${arg}")
 done
 
-exec ./implementation/target/release/tp1 "${args[@]}" # TODO: Change this path to be next to this shell script (./tp1)
+exec ./implementation/target/release/tp1 "${args[@]}"
