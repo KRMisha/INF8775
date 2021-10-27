@@ -9,6 +9,9 @@ use cli_args::{Algorithm, Cli};
 mod graph_utils;
 use graph_utils::load_graph;
 
+mod greedy_algorithm;
+use greedy_algorithm::solve_with_greedy;
+
 fn main() {
     // Parse args
     let args = Cli::from_args();
@@ -38,14 +41,10 @@ fn main() {
     }
 }
 
-fn solve_with_greedy(graph: &UnMatrix<u8, ()>) {
-
-}
-
 fn solve_with_branch_bound(graph: &UnMatrix<u8, ()>) {
-    
+
 }
 
 fn solve_with_taboo(graph: &UnMatrix<u8, ()>) {
-    
+
 }
