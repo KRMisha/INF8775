@@ -16,15 +16,17 @@ pub fn load_graph(filename: &Path) -> Result<UnMatrix<u8, ()>, Box<dyn Error>> {
     // Initialize graph
     let mut graph = UnMatrix::with_capacity(matrix_size);
 
-    for (i, line) in lines_it.enumerate() {
-        // Create node
+    // Create nodes
+    for _ in 0..matrix_size {
         graph.add_node(0u8);
+    }
 
-        // Add edges
+    // Create edges
+    for (i, line) in lines_it.enumerate() {
         for (j, number) in line.trim().split(char::is_whitespace).enumerate() {
             let value: u8 = number.trim().parse()?;
             if value == 1 {
-                graph.add_edge(NodeIndex::new(i), NodeIndex::new(j), ())
+                graph.update_edge(NodeIndex::new(i), NodeIndex::new(j), ());
             }
         }
     }
