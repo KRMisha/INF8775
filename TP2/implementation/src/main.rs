@@ -7,7 +7,7 @@ mod cli_args;
 use cli_args::{Algorithm, Cli};
 
 mod graph_utils;
-use graph_utils::load_graph;
+use graph_utils::{load_graph, print_result};
 
 mod greedy_algorithm;
 use greedy_algorithm::solve_with_greedy;
@@ -33,7 +33,7 @@ fn main() {
     let elapsed_ms = now.elapsed().as_secs_f64() * 1000.0;
 
     if args.show_result {
-        // TODO
+        print_result(&result);
     }
 
     if args.show_exec_time {
@@ -41,10 +41,10 @@ fn main() {
     }
 }
 
-fn solve_with_branch_bound(graph: &UnMatrix<u8, ()>) {
-
+fn solve_with_branch_bound(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
+    vec![1, 2, 3]
 }
 
-fn solve_with_taboo(graph: &UnMatrix<u8, ()>) {
-
+fn solve_with_taboo(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
+    vec![1, 2, 3]
 }

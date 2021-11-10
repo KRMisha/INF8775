@@ -18,7 +18,7 @@ pub fn load_graph(filename: &Path) -> Result<UnMatrix<u8, ()>, Box<dyn Error>> {
 
     // Create nodes
     for _ in 0..matrix_size {
-        graph.add_node(0u8);
+        graph.add_node(0u8); // TODO: Check if storing a weight in the node is still needed
     }
 
     // Create edges
@@ -32,4 +32,12 @@ pub fn load_graph(filename: &Path) -> Result<UnMatrix<u8, ()>, Box<dyn Error>> {
     }
 
     Ok(graph)
+}
+
+pub fn print_result(colors: &Vec<usize>) {
+    let color_count = colors.iter().max().unwrap() + 1;
+    println!("{}", color_count);
+
+    let color_str = colors.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(" ");
+    println!("{}", color_str);
 }
