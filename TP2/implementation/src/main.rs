@@ -1,6 +1,5 @@
 use std::time::Instant;
 
-use petgraph::matrix_graph::UnMatrix;
 use structopt::StructOpt;
 
 mod cli_args;
@@ -11,6 +10,12 @@ use graph_utils::{load_graph, print_result};
 
 mod greedy_algorithm;
 use greedy_algorithm::solve_with_greedy;
+
+mod branch_and_bound_algorithm;
+use branch_and_bound_algorithm::solve_with_branch_and_bound;
+
+mod tabu_search_algorithm;
+use tabu_search_algorithm::solve_with_tabu_search;
 
 fn main() {
     // Parse args
@@ -25,8 +30,8 @@ fn main() {
     // Execute selected algorithm
     let result = match args.algorithm {
         Algorithm::Greedy => solve_with_greedy(&graph),
-        Algorithm::BranchBound => solve_with_branch_bound(&graph),
-        Algorithm::Taboo => solve_with_taboo(&graph),
+        Algorithm::BranchAndBound => solve_with_branch_and_bound(&graph),
+        Algorithm::Tabu => solve_with_tabu_search(&graph),
     };
 
     // Calculate elapsed time
@@ -39,12 +44,4 @@ fn main() {
     if args.show_exec_time {
         println!("{}", elapsed_ms);
     }
-}
-
-fn solve_with_branch_bound(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
-    vec![1, 2, 3]
-}
-
-fn solve_with_taboo(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
-    vec![1, 2, 3]
 }

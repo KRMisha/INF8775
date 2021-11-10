@@ -5,8 +5,8 @@ use structopt::StructOpt;
 #[derive(StructOpt)]
 pub enum Algorithm {
     Greedy,
-    BranchBound,
-    Taboo,
+    BranchAndBound,
+    Tabu,
 }
 
 impl FromStr for Algorithm {
@@ -14,8 +14,8 @@ impl FromStr for Algorithm {
     fn from_str(algorithm: &str) -> Result<Self, Self::Err> {
         match algorithm {
             "glouton" => Ok(Algorithm::Greedy),
-            "branch_bound" => Ok(Algorithm::BranchBound),
-            "tabou" => Ok(Algorithm::Taboo),
+            "branch_bound" => Ok(Algorithm::BranchAndBound),
+            "tabou" => Ok(Algorithm::Tabu),
             _ => Err(format!("Could not parse algorithm: {}", algorithm)),
         }
     }
