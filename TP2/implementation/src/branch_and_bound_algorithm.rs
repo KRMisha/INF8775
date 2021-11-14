@@ -67,7 +67,7 @@ fn extend_node_colors(
 
     // Get next uncolored node to color
     let uncolored_node_index =
-        find_node_with_greedy_choice(graph, &node_set, &node_degrees, &node_colors);
+        find_node_with_greedy_choice(graph, node_set, node_degrees, node_colors);
 
     // Generate new partial color combinations from next uncolored node
     let neighbor_colors = get_neighbor_unique_colors(graph, uncolored_node_index, node_colors);
