@@ -1,6 +1,6 @@
-use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 
+use itertools::Itertools;
 use petgraph::matrix_graph::{NodeIndex, UnMatrix};
 use petgraph::visit::IntoNodeIdentifiers;
 
@@ -35,9 +35,9 @@ pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
     }
 
     let node_colors_vec = node_colors
-        .iter()
+        .into_iter()
         .sorted()
-        .map(|(&_node_index, &color)| color)
+        .map(|(_node_index, color)| color)
         .collect();
     node_colors_vec
 }
@@ -82,8 +82,7 @@ pub fn find_node_with_greedy_choice(
     let mut max_saturation = 0usize;
 
     for uncolored_node_index in uncolored_nodes_indexes {
-        let saturation =
-            get_neighbor_unique_colors(graph, uncolored_node_index, node_colors).len();
+        let saturation = get_neighbor_unique_colors(graph, uncolored_node_index, node_colors).len();
 
         if max_saturation > saturation {
             continue;
