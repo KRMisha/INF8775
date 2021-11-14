@@ -17,15 +17,10 @@ pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
 
     // Color all nodes
     while node_colors.len() < graph.node_count() {
-        // Compute remaining uncolored nodes
-        let colored_node_set: HashSet<_> = node_colors.keys().cloned().collect();
-        let uncolored_nodes_indexes: Vec<_> =
-            node_set.difference(&colored_node_set).cloned().collect();
-
         // Get next uncolored node to color
         let current_node_index = find_node_with_greedy_choice(
             graph,
-            &uncolored_nodes_indexes,
+            &node_set,
             &node_degrees,
             &node_colors,
         );
@@ -48,7 +43,7 @@ pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
         }
     }
 
-    let node_colors_vec: Vec<_> = node_colors
+    let node_colors_vec = node_colors
         .iter()
         .sorted()
         .map(|(&_node_index, &color)| color)
@@ -56,7 +51,7 @@ pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
     node_colors_vec
 }
 
-fn get_node_degrees(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
+pub fn get_node_degrees(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
     let mut node_degrees = Vec::with_capacity(graph.node_count());
 
     for node_index in graph.node_identifiers() {
@@ -67,7 +62,7 @@ fn get_node_degrees(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
     node_degrees
 }
 
-fn find_node_with_maximal_degree(node_degrees: &Vec<usize>) -> NodeIndex {
+pub fn find_node_with_maximal_degree(node_degrees: &Vec<usize>) -> NodeIndex {
     let mut max_degree_node_index = NodeIndex::new(0);
     let mut max_degree = 0usize;
 
@@ -81,19 +76,23 @@ fn find_node_with_maximal_degree(node_degrees: &Vec<usize>) -> NodeIndex {
     max_degree_node_index
 }
 
-fn find_node_with_greedy_choice(
+pub fn find_node_with_greedy_choice(
     graph: &UnMatrix<u8, ()>,
-    candidate_node_indexes: &Vec<NodeIndex>,
+    node_set: &HashSet<NodeIndex>,
     node_degrees: &Vec<usize>,
     node_colors: &HashMap<NodeIndex, usize>,
 ) -> NodeIndex {
+    // Compute remaining uncolored nodes
+    let colored_node_set: HashSet<_> = node_colors.keys().cloned().collect();
+    let uncolored_nodes_indexes: Vec<_> = node_set.difference(&colored_node_set).cloned().collect();
+
     // Find node with max degree of saturation among uncolored nodes, with max number of neighbors in case of equality
-    let mut max_saturation_node_index = *candidate_node_indexes.first().unwrap();
+    let mut max_saturation_node_index = *uncolored_nodes_indexes.first().unwrap();
     let mut max_saturation = 0usize;
 
-    for candidate_node_index in candidate_node_indexes {
+    for uncolored_node_index in uncolored_nodes_indexes {
         let saturation =
-            get_neighbor_unique_colors(graph, *candidate_node_index, &node_colors).len();
+            get_neighbor_unique_colors(graph, uncolored_node_index, &node_colors).len();
 
         if max_saturation > saturation {
             continue;
@@ -101,12 +100,12 @@ fn find_node_with_greedy_choice(
 
         if max_saturation == saturation
             && node_degrees[max_saturation_node_index.index()]
-                > node_degrees[candidate_node_index.index()]
+                > node_degrees[uncolored_node_index.index()]
         {
             continue;
         }
 
-        max_saturation_node_index = *candidate_node_index;
+        max_saturation_node_index = uncolored_node_index;
         max_saturation = saturation;
     }
 
