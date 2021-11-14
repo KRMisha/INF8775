@@ -4,10 +4,10 @@ use itertools::Itertools;
 use petgraph::matrix_graph::{NodeIndex, UnMatrix};
 use petgraph::visit::IntoNodeIdentifiers;
 
-use crate::greedy_algorithm::{
-    find_node_with_greedy_choice, find_node_with_maximum_degree, get_neighbor_unique_colors,
-    get_node_degrees, solve_with_greedy,
+use crate::graph_utils::{
+    find_node_with_maximum_degree, get_neighbor_unique_colors, get_node_degrees,
 };
+use crate::greedy_algorithm::{find_node_with_greedy_choice, solve_with_greedy};
 
 pub fn solve_with_branch_and_bound(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
     let node_set: HashSet<_> = graph.node_identifiers().collect();

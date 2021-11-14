@@ -49,3 +49,4 @@ fn main() {
 // TODO: Change node_degrees to HashMap instead of vector, using .sorted() from itertools
 // TODO: Add .sorted() to set difference to ensure deterministic behavior? Or use sorted BTreeMap rather than HashMap?
 // TODO: Store node degree directly in graph to avoid repetitive parameter passing and initialization in each algorithm?
+// TODO: Optimize calculation of remaining uncolored nodes, without doing a set difference? E.g. keeping track of which node to iteratively remove from a single set

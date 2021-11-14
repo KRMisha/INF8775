@@ -4,6 +4,10 @@ use itertools::Itertools;
 use petgraph::matrix_graph::{NodeIndex, UnMatrix};
 use petgraph::visit::IntoNodeIdentifiers;
 
+use crate::graph_utils::{
+    find_node_with_maximum_degree, get_neighbor_unique_colors, get_node_degrees,
+};
+
 pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
     let node_set: HashSet<_> = graph.node_identifiers().collect();
     let node_degrees = get_node_degrees(graph);
@@ -42,31 +46,6 @@ pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
     node_colors_vec
 }
 
-pub fn get_node_degrees(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
-    let mut node_degrees = Vec::with_capacity(graph.node_count());
-
-    for node_index in graph.node_identifiers() {
-        let degree = graph.edges(node_index).count();
-        node_degrees.push(degree);
-    }
-
-    node_degrees
-}
-
-pub fn find_node_with_maximum_degree(node_degrees: &Vec<usize>) -> NodeIndex {
-    let mut max_degree_node_index = NodeIndex::new(0);
-    let mut max_degree = 0usize;
-
-    for (index, degree) in node_degrees.iter().enumerate() {
-        if max_degree < *degree {
-            max_degree = *degree;
-            max_degree_node_index = NodeIndex::new(index);
-        }
-    }
-
-    max_degree_node_index
-}
-
 pub fn find_node_with_greedy_choice(
     graph: &UnMatrix<u8, ()>,
     node_set: &HashSet<NodeIndex>,
@@ -100,21 +79,6 @@ pub fn find_node_with_greedy_choice(
     }
 
     max_saturation_node_index
-}
-
-pub fn get_neighbor_unique_colors(
-    graph: &UnMatrix<u8, ()>,
-    node_index: NodeIndex,
-    node_colors: &HashMap<NodeIndex, usize>,
-) -> HashSet<usize> {
-    let mut unique_neighbor_colors = HashSet::new();
-    for neighbor_node_index in graph.neighbors(node_index) {
-        if let Some(color) = node_colors.get(&neighbor_node_index) {
-            unique_neighbor_colors.insert(*color);
-        }
-    }
-
-    unique_neighbor_colors
 }
 
 fn get_smallest_color_for_node(
