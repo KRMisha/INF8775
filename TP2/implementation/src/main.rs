@@ -45,3 +45,7 @@ fn main() {
         println!("{}", elapsed_ms);
     }
 }
+
+// TODO: Change node_degrees to HashMap instead of vector, using .sorted() from itertools
+// TODO: Add .sorted() to set difference to ensure deterministic behavior? Or use sorted BTreeMap rather than HashMap?
+// TODO: Store node degree directly in graph to avoid repetitive parameter passing and initialization in each algorithm?
