@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-use petgraph::matrix_graph::{UnMatrix, NodeIndex};
+use petgraph::matrix_graph::{NodeIndex, UnMatrix};
 
 pub fn load_graph(filename: &Path) -> Result<UnMatrix<u8, ()>, Box<dyn Error>> {
     let buffered = BufReader::new(File::open(filename)?);
@@ -38,6 +38,10 @@ pub fn print_result(colors: &Vec<usize>) {
     let color_count = colors.iter().max().unwrap() + 1;
     println!("{}", color_count);
 
-    let color_str = colors.iter().map(|x| x.to_string()).collect::<Vec<String>>().join(" ");
+    let color_str = colors
+        .iter()
+        .map(|x| x.to_string())
+        .collect::<Vec<_>>()
+        .join(" ");
     println!("{}", color_str);
 }
