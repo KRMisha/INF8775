@@ -5,7 +5,7 @@ use petgraph::matrix_graph::{NodeIndex, UnMatrix};
 use petgraph::visit::IntoNodeIdentifiers;
 
 use crate::greedy_algorithm::{
-    find_node_with_greedy_choice, find_node_with_maximal_degree, get_neighbor_unique_colors,
+    find_node_with_greedy_choice, find_node_with_maximum_degree, get_neighbor_unique_colors,
     get_node_degrees, solve_with_greedy,
 };
 
@@ -24,7 +24,7 @@ pub fn solve_with_branch_and_bound(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
     let mut color_combinations_to_visit = Vec::new();
 
     // Create new incomplete node color combination with starting node
-    let starting_node_index = find_node_with_maximal_degree(&node_degrees);
+    let starting_node_index = find_node_with_maximum_degree(&node_degrees);
     let starting_node_color = HashMap::from([(starting_node_index, 0)]);
     color_combinations_to_visit.push(starting_node_color);
 

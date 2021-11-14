@@ -12,7 +12,7 @@ pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
     let mut color_count = 1usize;
 
     // Color starting node
-    let starting_node_index = find_node_with_maximal_degree(&node_degrees);
+    let starting_node_index = find_node_with_maximum_degree(&node_degrees);
     node_colors.insert(starting_node_index, 0);
 
     // Color all nodes
@@ -53,7 +53,7 @@ pub fn get_node_degrees(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
     node_degrees
 }
 
-pub fn find_node_with_maximal_degree(node_degrees: &Vec<usize>) -> NodeIndex {
+pub fn find_node_with_maximum_degree(node_degrees: &Vec<usize>) -> NodeIndex {
     let mut max_degree_node_index = NodeIndex::new(0);
     let mut max_degree = 0usize;
 
