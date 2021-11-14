@@ -8,8 +8,8 @@ pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
     let node_set: HashSet<_> = graph.node_identifiers().collect();
     let node_degrees = get_node_degrees(graph);
 
-    let mut current_max_color = 0usize;
     let mut node_colors = HashMap::new();
+    let mut color_count = 1usize;
 
     // Color starting node
     let starting_node_index = find_node_with_maximal_degree(&node_degrees);
@@ -18,28 +18,19 @@ pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
     // Color all nodes
     while node_colors.len() < graph.node_count() {
         // Get next uncolored node to color
-        let current_node_index = find_node_with_greedy_choice(
-            graph,
-            &node_set,
-            &node_degrees,
-            &node_colors,
-        );
+        let current_node_index =
+            find_node_with_greedy_choice(graph, &node_set, &node_degrees, &node_colors);
 
         // Assign smallest possible color to node
-        let neighbor_colors = get_neighbor_unique_colors(graph, current_node_index, &node_colors);
+        let color =
+            get_smallest_color_for_node(graph, current_node_index, &node_colors, color_count)
+                .unwrap();
+        node_colors.insert(current_node_index, color);
 
-        let mut was_existing_color_available = false;
-        for i in 0..current_max_color {
-            if !neighbor_colors.contains(&i) {
-                node_colors.insert(current_node_index, i);
-                was_existing_color_available = true;
-                break;
-            }
-        }
-
-        if !was_existing_color_available {
-            current_max_color += 1;
-            node_colors.insert(current_node_index, current_max_color);
+        // Increment color count if color assigned to node was greather than any current color
+        let is_node_color_new = color == color_count;
+        if is_node_color_new {
+            color_count += 1;
         }
     }
 
@@ -112,10 +103,27 @@ pub fn find_node_with_greedy_choice(
     max_saturation_node_index
 }
 
+pub fn get_smallest_color_for_node(
+    graph: &UnMatrix<u8, ()>,
+    node_index: NodeIndex,
+    node_colors: &HashMap<NodeIndex, usize>,
+    color_count: usize,
+) -> Option<usize> {
+    let neighbor_colors = get_neighbor_unique_colors(graph, node_index, &node_colors);
+
+    for i in 0..color_count + 1 {
+        if !neighbor_colors.contains(&i) {
+            return Some(i);
+        }
+    }
+
+    None
+}
+
 fn get_neighbor_unique_colors(
     graph: &UnMatrix<u8, ()>,
     node_index: NodeIndex,
-    node_colors: &HashMap<NodeIndex<u16>, usize>,
+    node_colors: &HashMap<NodeIndex, usize>,
 ) -> HashSet<usize> {
     let mut unique_neighbor_colors = HashSet::new();
     for neighbor_node_index in graph.neighbors(node_index) {
