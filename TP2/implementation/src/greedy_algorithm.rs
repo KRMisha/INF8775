@@ -83,7 +83,7 @@ pub fn find_node_with_greedy_choice(
 
     for uncolored_node_index in uncolored_nodes_indexes {
         let saturation =
-            get_neighbor_unique_colors(graph, uncolored_node_index, &node_colors).len();
+            get_neighbor_unique_colors(graph, uncolored_node_index, node_colors).len();
 
         if max_saturation > saturation {
             continue;
@@ -103,24 +103,7 @@ pub fn find_node_with_greedy_choice(
     max_saturation_node_index
 }
 
-pub fn get_smallest_color_for_node(
-    graph: &UnMatrix<u8, ()>,
-    node_index: NodeIndex,
-    node_colors: &HashMap<NodeIndex, usize>,
-    color_count: usize,
-) -> Option<usize> {
-    let neighbor_colors = get_neighbor_unique_colors(graph, node_index, &node_colors);
-
-    for i in 0..color_count + 1 {
-        if !neighbor_colors.contains(&i) {
-            return Some(i);
-        }
-    }
-
-    None
-}
-
-fn get_neighbor_unique_colors(
+pub fn get_neighbor_unique_colors(
     graph: &UnMatrix<u8, ()>,
     node_index: NodeIndex,
     node_colors: &HashMap<NodeIndex, usize>,
@@ -133,4 +116,21 @@ fn get_neighbor_unique_colors(
     }
 
     unique_neighbor_colors
+}
+
+fn get_smallest_color_for_node(
+    graph: &UnMatrix<u8, ()>,
+    node_index: NodeIndex,
+    node_colors: &HashMap<NodeIndex, usize>,
+    color_count: usize,
+) -> Option<usize> {
+    let neighbor_colors = get_neighbor_unique_colors(graph, node_index, node_colors);
+
+    for i in 0..color_count + 1 {
+        if !neighbor_colors.contains(&i) {
+            return Some(i);
+        }
+    }
+
+    None
 }
