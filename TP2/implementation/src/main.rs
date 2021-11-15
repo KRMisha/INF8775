@@ -6,7 +6,7 @@ mod cli_args;
 use cli_args::{Algorithm, Cli};
 
 mod graph_utils;
-use graph_utils::{load_graph, print_result};
+use graph_utils::{load_graph_from_edge_list, print_result};
 
 mod greedy_algorithm;
 use greedy_algorithm::solve_with_greedy;
@@ -22,7 +22,8 @@ fn main() {
     let args = Cli::from_args();
 
     // Load graph
-    let graph = load_graph(&args.filename).expect("Error parsing graph adjacency matrix from file");
+    let graph = load_graph_from_edge_list(&args.filename)
+        .expect("Error parsing graph adjacency matrix from file");
 
     // Start clock
     let now = Instant::now();

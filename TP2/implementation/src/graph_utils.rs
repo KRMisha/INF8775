@@ -7,7 +7,8 @@ use std::path::Path;
 use petgraph::matrix_graph::{NodeIndex, UnMatrix};
 use petgraph::visit::IntoNodeIdentifiers;
 
-pub fn load_graph(filename: &Path) -> Result<UnMatrix<u8, ()>, Box<dyn Error>> {
+#[allow(dead_code)]
+pub fn load_graph_from_matrix(filename: &Path) -> Result<UnMatrix<u8, ()>, Box<dyn Error>> {
     let buffered = BufReader::new(File::open(filename)?);
     let mut lines_it = buffered.lines().map(|l| l.unwrap());
 
@@ -32,6 +33,30 @@ pub fn load_graph(filename: &Path) -> Result<UnMatrix<u8, ()>, Box<dyn Error>> {
             }
         }
     }
+
+    Ok(graph)
+}
+
+pub fn load_graph_from_edge_list(filename: &Path) -> Result<UnMatrix<u8, ()>, Box<dyn Error>> {
+    let buffered = BufReader::new(File::open(filename)?);
+    let lines_it = buffered.lines().map(|l| l.unwrap());
+
+    // Parse edges
+    let mut edges = Vec::new();
+    for line in lines_it {
+        if line.starts_with("e") {
+            let edge_indices: Vec<u16> = line
+                .split(" ")
+                .skip(1)
+                .take(2)
+                .map(|s| s.parse())
+                .collect::<Result<Vec<_>, _>>()?;
+            edges.push((edge_indices[0] - 1, edge_indices[1] - 1)); // Convert from 1-indexed to 0-indexed nodes
+        }
+    }
+
+    // Create graph
+    let graph = UnMatrix::from_edges(edges);
 
     Ok(graph)
 }
