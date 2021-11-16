@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use petgraph::matrix_graph::{NodeIndex, UnMatrix};
+use petgraph::visit::IntoEdgeReferences;
 use rand::Rng;
 
 use crate::graph_utils::count_colors;
@@ -79,15 +80,13 @@ fn fix_conflicts_with_tabu_search(
 
     // Count total number of conflicts in current node color combination
     let mut current_conflict_count = 0usize;
-    for (node_index, color) in current_node_colors.iter() {
-        for neighbor_node_index in graph.neighbors(*node_index) {
-            let neighbor_color = current_node_colors.get(&neighbor_node_index).unwrap();
-            if color == neighbor_color {
-                current_conflict_count += 1;
-            }
+    for (source_node_index, target_node_index, _) in graph.edge_references() {
+        let source_node_color = current_node_colors.get(&source_node_index).unwrap();
+        let target_node_color = current_node_colors.get(&target_node_index).unwrap();
+        if source_node_color == target_node_color {
+            current_conflict_count += 1;
         }
     }
-    current_conflict_count /= 2; // Prevent double-counting of conflicts
 
     // Tabu search
     while current_tick < MAX_TABU_ITERATION_COUNT {
@@ -126,7 +125,10 @@ fn fix_conflicts_with_tabu_search(
         }
 
         // Update current node color combination with best neighbor node color tuple
-        current_node_colors.insert(best_neighbor_node_color_tuple.0, best_neighbor_node_color_tuple.1);
+        current_node_colors.insert(
+            best_neighbor_node_color_tuple.0,
+            best_neighbor_node_color_tuple.1,
+        );
         current_conflict_count = best_neighbor_conflict_count;
 
         // Update tabu list
