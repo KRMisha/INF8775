@@ -97,7 +97,6 @@ fn fix_conflicts_with_tabu_search(
 
         // Find neighboring node color minimizing conflicts
         let mut best_neighbor_node_color_tuple = neighboring_node_color_tuples[0];
-        let mut best_neighbor_node_colors = HashMap::new();
         let mut best_neighbor_conflict_count = graph.node_count();
 
         for node_color_tuple in neighboring_node_color_tuples {
@@ -122,14 +121,13 @@ fn fix_conflicts_with_tabu_search(
 
             if conflict_count < best_neighbor_conflict_count {
                 best_neighbor_node_color_tuple = node_color_tuple;
-
-                // Set best neighbor color combination to modified copy of current node colors 
-                best_neighbor_node_colors = current_node_colors.clone();
-                best_neighbor_node_colors.insert(node_color_tuple.0, node_color_tuple.1);
-
                 best_neighbor_conflict_count = conflict_count;
             }
         }
+
+        // Update current node color combination with best neighbor node color tuple
+        current_node_colors.insert(best_neighbor_node_color_tuple.0, best_neighbor_node_color_tuple.1);
+        current_conflict_count = best_neighbor_conflict_count;
 
         // Update tabu list
         tabu_list.insert(best_neighbor_node_color_tuple);
@@ -143,10 +141,6 @@ fn fix_conflicts_with_tabu_search(
             .push(best_neighbor_node_color_tuple);
 
         current_tick += 1;
-
-        // Update current node color combination
-        current_node_colors = best_neighbor_node_colors;
-        current_conflict_count = best_neighbor_conflict_count;
 
         // Remove expired tabu list entries
         if let Some(expired_node_color_tuples) = tabu_expiration_ticks.remove(&current_tick) {
