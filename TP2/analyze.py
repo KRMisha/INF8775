@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
-import itertools
+from collections import defaultdict
 import math
 from pathlib import Path
 import re
@@ -13,12 +13,12 @@ import pandas as pd
 from scipy import stats
 import seaborn as sns
 
-DATA_PATH = Path('data')
+DATA_INPUT_PATH = Path('data/generated')
 ANALYSIS_OUTPUT_PATH = Path('analysis')
 ALGORITHMS = {
-    'Conventional': 'conv',
-    'Strassen': 'strassen',
-    'StrassenThreshold': 'strassenSeuil',
+    'Greedy': 'glouton',
+    'BranchAndBound': 'branch_bound',
+    'Tabu': 'tabou',
 }
 MAX_N_SIZES = {
     'Conventional': None,
@@ -60,7 +60,7 @@ def run_threshold_subcommand():
     ax = sns.lineplot(data=df[-3:]) # Only show results for the three biggest matrices
     ax.set(
         title='Temps d\'exécution pour différents seuils avec l\'algorithme de Strassen',
-        xlabel=r'$N\quad(\mathrm{taille\ de\ la\ matrice} = 2^N$)',
+        xlabel=r'$N\quad(\mathrm{taille\ de\ la\ matrice} = 2^N)$',
         ylabel='Temps d\'exécution (ms)',
     )
     ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
@@ -81,7 +81,7 @@ def run_measure_subcommand():
     ax = sns.lineplot(data=df)
     ax.set(
         title='Temps d\'exécution pour chaque algorithme',
-        xlabel=r'$N\quad(\mathrm{taille\ de\ la\ matrice} = 2^N$)',
+        xlabel='Nombre de sommets du graphe',
         ylabel='Temps d\'exécution (ms)',
     )
     ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
@@ -159,8 +159,12 @@ def run_complexity_subcommand():
 
 
 def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
-    matrix_filenames = [x for x in DATA_PATH.iterdir() if x.is_file()]
-    matrix_n_sizes = sorted(set(int(re.search(r'ex(\d*?)_', filename.name).group(1)) for filename in matrix_filenames))
+    filenames = [x for x in DATA_INPUT_PATH.iterdir() if x.is_file()]
+    filenames_by_graph_size = defaultdict(list)
+    for filename in filenames:
+        size = int(re.search(r'ex(\d*?)_', filename.name).group(1))
+        filenames_by_graph_size[size].append(filename)
+    filenames_by_graph_size = dict(sorted(filenames_by_graph_size.items()))
 
     results = {}
 
@@ -169,29 +173,26 @@ def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
 
         results[algorithm_name] = {}
 
-        for n in matrix_n_sizes:
-            if MAX_N_SIZES[algorithm_name] is not None and n > MAX_N_SIZES[algorithm_name]:
-                break
-
-            matrix_n_size_filenames = sorted(DATA_PATH.glob(f'ex{n}_*'))
-            matrix_filename_pairs = list(itertools.combinations(matrix_n_size_filenames, 2))
+        for graph_size, filenames in filenames_by_graph_size.items():
+            # if MAX_N_SIZES[algorithm_name] is not None and n > MAX_N_SIZES[algorithm_name]:
+            #     break
 
             execution_times_ms = []
-            for matrix_1_filename, matrix_2_filename in matrix_filename_pairs * trial_count:
+            for filename in filenames:
                 result = subprocess.run(
-                    ['./tp.sh', '-a', algorithm_arg, '-e1', matrix_1_filename, '-e2', matrix_2_filename, '-t', *extra_args],
+                    ['./tp.sh', '-a', algorithm_arg, '-e', filename, '-t', *extra_args],
                     stdout=subprocess.PIPE,
                 )
                 execution_times_ms.append(float(result.stdout.decode('utf-8')))
 
             average_execution_time_ms = statistics.mean(execution_times_ms)
-            print(f'\tN: {n} - Average execution time: {average_execution_time_ms}')
+            print(f'\tGraph node count: {graph_size} - Average execution time: {average_execution_time_ms}')
 
-            results[algorithm_name][n] = average_execution_time_ms
+            results[algorithm_name][graph_size] = average_execution_time_ms
 
         print()
 
-    df = pd.DataFrame(results).rename_axis('N')
+    df = pd.DataFrame(results).rename_axis('GraphSize')
     return df
 
 
