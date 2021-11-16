@@ -20,10 +20,10 @@ ALGORITHMS = {
     'BranchAndBound': 'branch_bound',
     'Tabu': 'tabou',
 }
-MAX_N_SIZES = {
-    'Conventional': None,
-    'Strassen': 9,
-    'StrassenThreshold': None,
+MAX_GRAPH_SIZES = {
+    'Greedy': None,
+    'BranchAndBound': None,
+    'Tabu': 64,
 }
 THEORETICAL_COMPLEXITY_POWERS = {
     'Conventional': 3,
@@ -46,17 +46,20 @@ def main():
 
 
 def run_measure_subcommand():
-    df = measure_execution_times(ALGORITHMS)
-    print('Execution times of the three different algorithms')
-    print(df)
+    df_color_counts, df_execution_times = measure_execution_times(ALGORITHMS)
+    print('Color counts and execution times for the three different algorithms')
+    print(df_color_counts)
+    print(df_execution_times)
 
+    with open(ANALYSIS_OUTPUT_PATH / 'color_counts.md', 'w') as file:
+        file.write(df_color_counts.to_markdown() + '\n')
     with open(ANALYSIS_OUTPUT_PATH / 'execution_times.md', 'w') as file:
-        file.write(df.to_markdown() + '\n')
+        file.write(df_execution_times.to_markdown() + '\n')
 
-    df.to_csv(ANALYSIS_OUTPUT_PATH / 'execution_times.csv')
+    df_execution_times.to_csv(ANALYSIS_OUTPUT_PATH / 'execution_times.csv')
 
     plt.figure()
-    ax = sns.lineplot(data=df)
+    ax = sns.lineplot(data=df_execution_times)
     ax.set(
         title='Temps d\'exécution pour chaque algorithme',
         xlabel='Nombre de sommets du graphe',
@@ -136,7 +139,7 @@ def run_complexity_subcommand():
         plt.savefig(ANALYSIS_OUTPUT_PATH / f'constants_test_{algorithm_name.lower()}.png', bbox_inches='tight')
 
 
-def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
+def measure_execution_times(algorithms):
     filenames = [x for x in DATA_INPUT_PATH.iterdir() if x.is_file()]
     filenames_by_graph_size = defaultdict(list)
     for filename in filenames:
@@ -144,38 +147,45 @@ def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
         filenames_by_graph_size[size].append(filename)
     filenames_by_graph_size = dict(sorted(filenames_by_graph_size.items()))
 
-    results = {}
+    color_count_results = {}
+    execution_time_results = {}
 
     for algorithm_name, algorithm_arg in algorithms.items():
         print('Measuring execution time for', algorithm_name)
 
-        results[algorithm_name] = {}
+        color_count_results[algorithm_name] = {}
+        execution_time_results[algorithm_name] = {}
 
         for graph_size, filenames in filenames_by_graph_size.items():
-            # if MAX_N_SIZES[algorithm_name] is not None and n > MAX_N_SIZES[algorithm_name]:
-            #     break
+            if MAX_GRAPH_SIZES[algorithm_name] is not None and graph_size > MAX_GRAPH_SIZES[algorithm_name]:
+                break
 
+            color_counts = []
             execution_times_ms = []
             for filename in filenames:
                 result = subprocess.run(
-                    ['./tp.sh', '-a', algorithm_arg, '-e', filename, '-t', *extra_args],
+                    ['./tp.sh', '-a', algorithm_arg, '-e', filename, '-p', '-t'],
                     stdout=subprocess.PIPE,
                 )
-                execution_times_ms.append(float(result.stdout.decode('utf-8')))
+                output_lines = result.stdout.decode('utf-8').splitlines()
+                color_counts.append(int(output_lines[0]))
+                execution_times_ms.append(float(output_lines[2]))
 
+            average_color_count = statistics.mean(color_counts)
             average_execution_time_ms = statistics.mean(execution_times_ms)
-            print(f'\tGraph node count: {graph_size} - Average execution time: {average_execution_time_ms}')
+            print(
+                f'\tGraph node count: {graph_size} - '
+                f'Average color count: {average_color_count} - Average execution time: {average_execution_time_ms}'
+            )
 
-            results[algorithm_name][graph_size] = average_execution_time_ms
+            color_count_results[algorithm_name][graph_size] = average_color_count
+            execution_time_results[algorithm_name][graph_size] = average_execution_time_ms
 
         print()
 
-    df = pd.DataFrame(results).rename_axis('GraphSize')
-    return df
-
-
-
-
+    df_color_counts = pd.DataFrame(color_count_results).rename_axis('GraphSize')
+    df_execution_times = pd.DataFrame(execution_time_results).rename_axis('GraphSize')
+    return df_color_counts, df_execution_times
 
 
 if __name__ == '__main__':
