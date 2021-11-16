@@ -10,7 +10,7 @@ const TABU_MAX_ITERATION_COUNT: usize = 32; // TODO: Tweak
 const ALPHA: usize = 2;
 const G: usize = 10;
 
-pub fn solve_with_tabu_search(graph: &UnMatrix<u8, ()>) -> HashMap<NodeIndex, usize> {
+pub fn solve_with_tabu_search(graph: &UnMatrix<(), ()>) -> HashMap<NodeIndex, usize> {
     // Get initial best solution using greedy algorithm
     let mut best_node_colors = solve_with_greedy(&graph);
 
@@ -32,7 +32,7 @@ pub fn solve_with_tabu_search(graph: &UnMatrix<u8, ()>) -> HashMap<NodeIndex, us
 }
 
 fn reduce_node_colors(
-    graph: &UnMatrix<u8, ()>,
+    graph: &UnMatrix<(), ()>,
     node_colors: &HashMap<NodeIndex, usize>,
 ) -> HashMap<NodeIndex, usize> {
     let color_count = count_colors(node_colors);
@@ -101,7 +101,7 @@ fn generate_neighboring_node_colors(
 }
 
 fn fix_conflicts_with_tabu_search(
-    graph: &UnMatrix<u8, ()>,
+    graph: &UnMatrix<(), ()>,
     node_colors: &HashMap<NodeIndex, usize>,
 ) -> Option<HashMap<NodeIndex, usize>> {
     // Tabu list

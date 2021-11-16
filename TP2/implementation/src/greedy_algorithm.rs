@@ -7,7 +7,7 @@ use crate::graph_utils::{
     find_node_with_maximum_degree, get_neighbor_unique_colors, get_node_degrees,
 };
 
-pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> HashMap<NodeIndex, usize> {
+pub fn solve_with_greedy(graph: &UnMatrix<(), ()>) -> HashMap<NodeIndex, usize> {
     let node_set: HashSet<_> = graph.node_identifiers().collect();
     let node_degrees = get_node_degrees(graph);
 
@@ -41,7 +41,7 @@ pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> HashMap<NodeIndex, usize> 
 }
 
 pub fn find_node_with_greedy_choice(
-    graph: &UnMatrix<u8, ()>,
+    graph: &UnMatrix<(), ()>,
     node_set: &HashSet<NodeIndex>,
     node_degrees: &Vec<usize>,
     node_colors: &HashMap<NodeIndex, usize>,
@@ -76,7 +76,7 @@ pub fn find_node_with_greedy_choice(
 }
 
 fn get_smallest_color_for_node(
-    graph: &UnMatrix<u8, ()>,
+    graph: &UnMatrix<(), ()>,
     node_index: NodeIndex,
     node_colors: &HashMap<NodeIndex, usize>,
     color_count: usize,

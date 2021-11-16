@@ -9,7 +9,7 @@ use petgraph::matrix_graph::{NodeIndex, UnMatrix};
 use petgraph::visit::IntoNodeIdentifiers;
 
 #[allow(dead_code)]
-pub fn load_graph_from_matrix(filename: &Path) -> Result<UnMatrix<u8, ()>, Box<dyn Error>> {
+pub fn load_graph_from_matrix(filename: &Path) -> Result<UnMatrix<(), ()>, Box<dyn Error>> {
     let buffered = BufReader::new(File::open(filename)?);
     let mut lines_it = buffered.lines().map(|l| l.unwrap());
 
@@ -22,7 +22,7 @@ pub fn load_graph_from_matrix(filename: &Path) -> Result<UnMatrix<u8, ()>, Box<d
 
     // Create nodes
     for _ in 0..matrix_size {
-        graph.add_node(0u8); // TODO: Check if storing a weight in the node is still needed
+        graph.add_node(());
     }
 
     // Create edges
@@ -38,7 +38,7 @@ pub fn load_graph_from_matrix(filename: &Path) -> Result<UnMatrix<u8, ()>, Box<d
     Ok(graph)
 }
 
-pub fn load_graph_from_edge_list(filename: &Path) -> Result<UnMatrix<u8, ()>, Box<dyn Error>> {
+pub fn load_graph_from_edge_list(filename: &Path) -> Result<UnMatrix<(), ()>, Box<dyn Error>> {
     let buffered = BufReader::new(File::open(filename)?);
     let lines_it = buffered.lines().map(|l| l.unwrap());
 
@@ -62,7 +62,7 @@ pub fn load_graph_from_edge_list(filename: &Path) -> Result<UnMatrix<u8, ()>, Bo
     Ok(graph)
 }
 
-pub fn get_node_degrees(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
+pub fn get_node_degrees(graph: &UnMatrix<(), ()>) -> Vec<usize> {
     let mut node_degrees = Vec::with_capacity(graph.node_count());
 
     for node_index in graph.node_identifiers() {
@@ -88,7 +88,7 @@ pub fn find_node_with_maximum_degree(node_degrees: &Vec<usize>) -> NodeIndex {
 }
 
 pub fn get_neighbor_unique_colors(
-    graph: &UnMatrix<u8, ()>,
+    graph: &UnMatrix<(), ()>,
     node_index: NodeIndex,
     node_colors: &HashMap<NodeIndex, usize>,
 ) -> HashSet<usize> {

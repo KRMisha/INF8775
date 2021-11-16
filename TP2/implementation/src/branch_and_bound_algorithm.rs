@@ -8,7 +8,7 @@ use crate::graph_utils::{
 };
 use crate::greedy_algorithm::{find_node_with_greedy_choice, solve_with_greedy};
 
-pub fn solve_with_branch_and_bound(graph: &UnMatrix<u8, ()>) -> HashMap<NodeIndex, usize> {
+pub fn solve_with_branch_and_bound(graph: &UnMatrix<(), ()>) -> HashMap<NodeIndex, usize> {
     let node_set: HashSet<_> = graph.node_identifiers().collect();
     let node_degrees = get_node_degrees(graph);
 
@@ -45,7 +45,7 @@ pub fn solve_with_branch_and_bound(graph: &UnMatrix<u8, ()>) -> HashMap<NodeInde
 }
 
 fn extend_node_colors(
-    graph: &UnMatrix<u8, ()>,
+    graph: &UnMatrix<(), ()>,
     node_set: &HashSet<NodeIndex>,
     node_degrees: &Vec<usize>,
     node_colors: &HashMap<NodeIndex, usize>,
