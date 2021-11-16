@@ -39,7 +39,7 @@ fn reduce_node_colors(
 
     let mut reduced_node_colors = node_colors.clone();
 
-    for (node_index, color) in node_colors.iter() {
+    for (node_index, color) in node_colors {
         // Only reassign color for nodes with the current max color
         if *color != color_count - 1 {
             continue;

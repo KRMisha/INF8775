@@ -43,7 +43,7 @@ pub fn solve_with_greedy(graph: &UnMatrix<(), ()>) -> HashMap<NodeIndex, usize> 
 pub fn find_node_with_greedy_choice(
     graph: &UnMatrix<(), ()>,
     node_set: &HashSet<NodeIndex>,
-    node_degrees: &Vec<usize>,
+    node_degrees: &HashMap<NodeIndex, usize>,
     node_colors: &HashMap<NodeIndex, usize>,
 ) -> NodeIndex {
     // Compute remaining uncolored nodes
@@ -57,14 +57,13 @@ pub fn find_node_with_greedy_choice(
     for uncolored_node_index in uncolored_nodes_indexes {
         let saturation = get_neighbor_unique_colors(graph, uncolored_node_index, node_colors).len();
 
-        if max_saturation > saturation {
+        if saturation < max_saturation {
             continue;
         }
 
-        if max_saturation == saturation
-            && node_degrees[max_saturation_node_index.index()]
-                > node_degrees[uncolored_node_index.index()]
-        {
+        let is_uncolored_node_degree_greater = node_degrees.get(&uncolored_node_index).unwrap()
+            > node_degrees.get(&max_saturation_node_index).unwrap();
+        if saturation == max_saturation && !is_uncolored_node_degree_greater {
             continue;
         }
 

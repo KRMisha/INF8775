@@ -62,25 +62,25 @@ pub fn load_graph_from_edge_list(filename: &Path) -> Result<UnMatrix<(), ()>, Bo
     Ok(graph)
 }
 
-pub fn get_node_degrees(graph: &UnMatrix<(), ()>) -> Vec<usize> {
-    let mut node_degrees = Vec::with_capacity(graph.node_count());
+pub fn get_node_degrees(graph: &UnMatrix<(), ()>) -> HashMap<NodeIndex, usize> {
+    let mut node_degrees = HashMap::new();
 
     for node_index in graph.node_identifiers() {
         let degree = graph.edges(node_index).count();
-        node_degrees.push(degree);
+        node_degrees.insert(node_index, degree);
     }
 
     node_degrees
 }
 
-pub fn find_node_with_maximum_degree(node_degrees: &Vec<usize>) -> NodeIndex {
+pub fn find_node_with_maximum_degree(node_degrees: &HashMap<NodeIndex, usize>) -> NodeIndex {
     let mut max_degree_node_index = NodeIndex::new(0);
     let mut max_degree = 0usize;
 
-    for (index, degree) in node_degrees.iter().enumerate() {
-        if max_degree < *degree {
-            max_degree = *degree;
-            max_degree_node_index = NodeIndex::new(index);
+    for (&index, &degree) in node_degrees {
+        if max_degree < degree {
+            max_degree = degree;
+            max_degree_node_index = index;
         }
     }
 
@@ -93,6 +93,7 @@ pub fn get_neighbor_unique_colors(
     node_colors: &HashMap<NodeIndex, usize>,
 ) -> HashSet<usize> {
     let mut unique_neighbor_colors = HashSet::new();
+
     for neighbor_node_index in graph.neighbors(node_index) {
         if let Some(color) = node_colors.get(&neighbor_node_index) {
             unique_neighbor_colors.insert(*color);

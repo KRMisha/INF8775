@@ -47,7 +47,7 @@ pub fn solve_with_branch_and_bound(graph: &UnMatrix<(), ()>) -> HashMap<NodeInde
 fn extend_node_colors(
     graph: &UnMatrix<(), ()>,
     node_set: &HashSet<NodeIndex>,
-    node_degrees: &Vec<usize>,
+    node_degrees: &HashMap<NodeIndex, usize>,
     node_colors: &HashMap<NodeIndex, usize>,
 ) -> Vec<HashMap<NodeIndex, usize>> {
     let mut color_combinations = Vec::new();
