@@ -123,14 +123,13 @@ fn fix_conflicts_with_tabu_search(
         let mut best_neighbor_conflict_count = graph.node_count();
 
         for node_color_tuple in neighboring_node_color_tuples {
-            let mut neighboring_node_colors = current_node_colors.clone();
-            neighboring_node_colors.insert(node_color_tuple.0, node_color_tuple.1);
+            let mut neighbor_node_colors = current_node_colors.clone();
+            neighbor_node_colors.insert(node_color_tuple.0, node_color_tuple.1);
 
-            // TODO: Fix double-counting of conflicts
             let mut conflict_count = 0usize;
-            for (node_index, color) in neighboring_node_colors.iter() {
+            for (node_index, color) in neighbor_node_colors.iter() {
                 for neighbor_node_index in graph.neighbors(*node_index) {
-                    let neighbor_color = neighboring_node_colors
+                    let neighbor_color = neighbor_node_colors
                         .get(&neighbor_node_index)
                         .unwrap();
                     if color == neighbor_color {
@@ -138,10 +137,11 @@ fn fix_conflicts_with_tabu_search(
                     }
                 }
             }
+            conflict_count /= 2; // Prevent double-counting of conflicts
 
             if conflict_count < best_neighbor_conflict_count {
                 best_neighbor_node_color_tuple = node_color_tuple;
-                best_neighbor_node_colors = neighboring_node_colors;
+                best_neighbor_node_colors = neighbor_node_colors;
                 best_neighbor_conflict_count = conflict_count;
             }
         }
@@ -158,7 +158,7 @@ fn fix_conflicts_with_tabu_search(
             .push(best_neighbor_node_color_tuple);
 
         current_tick += 1;
-        
+
         // Update current node color combination
         current_node_colors = best_neighbor_node_colors;
 
