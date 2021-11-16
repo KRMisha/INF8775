@@ -65,35 +65,6 @@ fn reduce_node_colors(
     reduced_node_colors
 }
 
-fn generate_neighboring_node_colors(
-    node_colors: &HashMap<NodeIndex, usize>,
-    tabu_list: &HashSet<(NodeIndex, usize)>,
-) -> Vec<(NodeIndex, usize)> {
-    let color_count = count_colors(node_colors);
-
-    let mut neighboring_node_colors = Vec::new();
-
-    for node_index in node_colors.keys() {
-        for color in 0..color_count {
-            // Exclude current color
-            if color == *node_colors.get(node_index).unwrap() {
-                continue;
-            }
-
-            let node_color_tuple = (*node_index, color);
-
-            // Exclude color if in tabu list
-            if tabu_list.contains(&node_color_tuple) {
-                continue;
-            }
-
-            neighboring_node_colors.push(node_color_tuple);
-        }
-    }
-
-    neighboring_node_colors
-}
-
 fn fix_conflicts_with_tabu_search(
     graph: &UnMatrix<(), ()>,
     node_colors: &HashMap<NodeIndex, usize>,
@@ -192,6 +163,35 @@ fn fix_conflicts_with_tabu_search(
 
     // Return None if the max number of iterations has been reached (tabu search failed)
     None
+}
+
+fn generate_neighboring_node_colors(
+    node_colors: &HashMap<NodeIndex, usize>,
+    tabu_list: &HashSet<(NodeIndex, usize)>,
+) -> Vec<(NodeIndex, usize)> {
+    let color_count = count_colors(node_colors);
+
+    let mut neighboring_node_colors = Vec::new();
+
+    for node_index in node_colors.keys() {
+        for color in 0..color_count {
+            // Exclude current color
+            if color == *node_colors.get(node_index).unwrap() {
+                continue;
+            }
+
+            let node_color_tuple = (*node_index, color);
+
+            // Exclude color if in tabu list
+            if tabu_list.contains(&node_color_tuple) {
+                continue;
+            }
+
+            neighboring_node_colors.push(node_color_tuple);
+        }
+    }
+
+    neighboring_node_colors
 }
 
 fn count_conflicts_for_node_color(
