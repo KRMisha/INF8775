@@ -1,23 +1,19 @@
 use std::collections::{HashMap, HashSet};
 
-use itertools::Itertools;
 use petgraph::matrix_graph::{NodeIndex, UnMatrix};
 use petgraph::visit::IntoNodeIdentifiers;
 
 use crate::graph_utils::{
-    find_node_with_maximum_degree, get_neighbor_unique_colors, get_node_degrees,
+    count_colors, find_node_with_maximum_degree, get_neighbor_unique_colors, get_node_degrees,
 };
 use crate::greedy_algorithm::{find_node_with_greedy_choice, solve_with_greedy};
 
-pub fn solve_with_branch_and_bound(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
+pub fn solve_with_branch_and_bound(graph: &UnMatrix<u8, ()>) -> HashMap<NodeIndex, usize> {
     let node_set: HashSet<_> = graph.node_identifiers().collect();
     let node_degrees = get_node_degrees(graph);
 
     // Get initial best solution and upper bound using greedy algorithm
-    let mut best_node_colors = HashMap::new();
-    for (i, color) in solve_with_greedy(graph).into_iter().enumerate() {
-        best_node_colors.insert(NodeIndex::new(i), color);
-    }
+    let mut best_node_colors = solve_with_greedy(graph);
     let mut best_color_count = count_colors(&best_node_colors);
 
     // Stack of node color combinations to visit
@@ -45,16 +41,7 @@ pub fn solve_with_branch_and_bound(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
         }
     }
 
-    let node_colors_vec = best_node_colors
-        .into_iter()
-        .sorted()
-        .map(|(_node_index, color)| color)
-        .collect();
-    node_colors_vec
-}
-
-fn count_colors(colors: &HashMap<NodeIndex, usize>) -> usize {
-    colors.values().max().unwrap() + 1
+    best_node_colors
 }
 
 fn extend_node_colors(

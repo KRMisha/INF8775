@@ -1,6 +1,5 @@
 use std::collections::{HashMap, HashSet};
 
-use itertools::Itertools;
 use petgraph::matrix_graph::{NodeIndex, UnMatrix};
 use petgraph::visit::IntoNodeIdentifiers;
 
@@ -8,7 +7,7 @@ use crate::graph_utils::{
     find_node_with_maximum_degree, get_neighbor_unique_colors, get_node_degrees,
 };
 
-pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
+pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> HashMap<NodeIndex, usize> {
     let node_set: HashSet<_> = graph.node_identifiers().collect();
     let node_degrees = get_node_degrees(graph);
 
@@ -38,12 +37,7 @@ pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> Vec<usize> {
         }
     }
 
-    let node_colors_vec = node_colors
-        .into_iter()
-        .sorted()
-        .map(|(_node_index, color)| color)
-        .collect();
-    node_colors_vec
+    node_colors
 }
 
 pub fn find_node_with_greedy_choice(

@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
+use itertools::Itertools;
 use petgraph::matrix_graph::{NodeIndex, UnMatrix};
 use petgraph::visit::IntoNodeIdentifiers;
 
@@ -101,13 +102,17 @@ pub fn get_neighbor_unique_colors(
     unique_neighbor_colors
 }
 
-pub fn print_result(colors: &Vec<usize>) {
-    let color_count = colors.iter().max().unwrap() + 1;
-    println!("{}", color_count);
+pub fn count_colors(node_colors: &HashMap<NodeIndex, usize>) -> usize {
+    node_colors.values().max().unwrap() + 1
+}
 
-    let color_str = colors
+pub fn print_result(node_colors: &HashMap<NodeIndex, usize>) {
+    println!("{}", count_colors(node_colors));
+
+    let color_str = node_colors
         .iter()
-        .map(|x| x.to_string())
+        .sorted()
+        .map(|(_node_index, color)| color.to_string())
         .collect::<Vec<_>>()
         .join(" ");
     println!("{}", color_str);
