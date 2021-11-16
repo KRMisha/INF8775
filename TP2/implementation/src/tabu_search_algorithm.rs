@@ -7,7 +7,7 @@ use rand::Rng;
 use crate::graph_utils::count_colors;
 use crate::greedy_algorithm::solve_with_greedy;
 
-const MAX_TABU_ITERATION_COUNT: usize = 100;
+const MAX_TABU_ITERATION_COUNT: usize = 128;
 const ALPHA: usize = 2;
 const G: usize = 10;
 

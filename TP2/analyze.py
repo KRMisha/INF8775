@@ -22,8 +22,8 @@ ALGORITHMS = {
 }
 MAX_GRAPH_SIZES = {
     'Greedy': None,
-    'BranchAndBound': None,
-    'Tabu': 64,
+    'BranchAndBound': 72,
+    'Tabu': None,
 }
 THEORETICAL_COMPLEXITY_POWERS = {
     'Conventional': 3,
