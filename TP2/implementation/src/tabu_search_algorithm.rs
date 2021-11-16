@@ -6,7 +6,7 @@ use rand::Rng;
 use crate::graph_utils::count_colors;
 use crate::greedy_algorithm::solve_with_greedy;
 
-const MAX_TABU_ITERATION_COUNT: usize = 50;
+const MAX_TABU_ITERATION_COUNT: usize = 100;
 const ALPHA: usize = 2;
 const G: usize = 10;
 
@@ -49,13 +49,8 @@ fn reduce_node_colors(
         let mut min_conflict_count = graph.neighbors(*node_index).count();
 
         for new_color in 0..color_count - 1 {
-            let mut conflict_count = 0usize;
-            for neighbor_node_index in graph.neighbors(*node_index) {
-                let neighbor_color = *node_colors.get(&neighbor_node_index).unwrap();
-                if new_color == neighbor_color {
-                    conflict_count += 1;
-                }
-            }
+            let conflict_count =
+                count_conflicts_for_node_color(graph, *node_index, new_color, node_colors);
 
             if conflict_count < min_conflict_count {
                 best_new_color = new_color;
@@ -111,6 +106,18 @@ fn fix_conflicts_with_tabu_search(
     // Current node color combination
     let mut current_node_colors = node_colors.clone();
 
+    // Count total number of conflicts in current node color combination
+    let mut current_conflict_count = 0usize;
+    for (node_index, color) in current_node_colors.iter() {
+        for neighbor_node_index in graph.neighbors(*node_index) {
+            let neighbor_color = current_node_colors.get(&neighbor_node_index).unwrap();
+            if color == neighbor_color {
+                current_conflict_count += 1;
+            }
+        }
+    }
+    current_conflict_count /= 2; // Prevent double-counting of conflicts
+
     // Tabu search
     while current_tick < MAX_TABU_ITERATION_COUNT {
         // Generate neighbors
@@ -123,25 +130,32 @@ fn fix_conflicts_with_tabu_search(
         let mut best_neighbor_conflict_count = graph.node_count();
 
         for node_color_tuple in neighboring_node_color_tuples {
-            let mut neighbor_node_colors = current_node_colors.clone();
-            neighbor_node_colors.insert(node_color_tuple.0, node_color_tuple.1);
+            // Subtract conflicts caused by current node color to be replaced
+            let conflicts_for_current_node_color = count_conflicts_for_node_color(
+                graph,
+                node_color_tuple.0,
+                *current_node_colors.get(&node_color_tuple.0).unwrap(),
+                &current_node_colors,
+            );
 
-            let mut conflict_count = 0usize;
-            for (node_index, color) in neighbor_node_colors.iter() {
-                for neighbor_node_index in graph.neighbors(*node_index) {
-                    let neighbor_color = neighbor_node_colors
-                        .get(&neighbor_node_index)
-                        .unwrap();
-                    if color == neighbor_color {
-                        conflict_count += 1;
-                    }
-                }
-            }
-            conflict_count /= 2; // Prevent double-counting of conflicts
+            // Add conflicts caused by new neighbor node color
+            let conflicts_for_neighbor_node_color = count_conflicts_for_node_color(
+                graph,
+                node_color_tuple.0,
+                node_color_tuple.1,
+                &current_node_colors,
+            );
+
+            let conflict_count = current_conflict_count - conflicts_for_current_node_color
+                + conflicts_for_neighbor_node_color;
 
             if conflict_count < best_neighbor_conflict_count {
                 best_neighbor_node_color_tuple = node_color_tuple;
-                best_neighbor_node_colors = neighbor_node_colors;
+
+                // Set best neighbor color combination to modified copy of current node colors 
+                best_neighbor_node_colors = current_node_colors.clone();
+                best_neighbor_node_colors.insert(node_color_tuple.0, node_color_tuple.1);
+
                 best_neighbor_conflict_count = conflict_count;
             }
         }
@@ -161,6 +175,7 @@ fn fix_conflicts_with_tabu_search(
 
         // Update current node color combination
         current_node_colors = best_neighbor_node_colors;
+        current_conflict_count = best_neighbor_conflict_count;
 
         // Remove expired tabu list entries
         if let Some(expired_node_color_tuples) = tabu_expiration_ticks.remove(&current_tick) {
@@ -177,4 +192,20 @@ fn fix_conflicts_with_tabu_search(
 
     // Return None if the max number of iterations has been reached (tabu search failed)
     None
+}
+
+fn count_conflicts_for_node_color(
+    graph: &UnMatrix<(), ()>,
+    node_index: NodeIndex,
+    new_color: usize,
+    existing_node_colors: &HashMap<NodeIndex, usize>,
+) -> usize {
+    let mut conflict_count = 0usize;
+    for neighbor_node_index in graph.neighbors(node_index) {
+        let neighbor_color = *existing_node_colors.get(&neighbor_node_index).unwrap();
+        if new_color == neighbor_color {
+            conflict_count += 1;
+        }
+    }
+    conflict_count
 }
