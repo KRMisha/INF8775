@@ -35,8 +35,7 @@ THEORETICAL_COMPLEXITY_POWERS = {
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(title='mode', dest='mode', required=True)
-    subparsers.add_parser('threshold', help='Compare the execution time of different thresholds for the Strassen with threshold algorithm').set_defaults(func=run_threshold_subcommand)
-    subparsers.add_parser('measure', help='Measure and save the execution times for the conventional, Strassen, and Strassen with threshold algorithms').set_defaults(func=run_measure_subcommand)
+    subparsers.add_parser('measure', help='Measure and save the execution times and color count for the greedy, branch and bound, and tabu search algorithms').set_defaults(func=run_measure_subcommand)
     subparsers.add_parser('complexity', help='Generate graphs for the power, ratio and constants tests based on the execution time results').set_defaults(func=run_complexity_subcommand)
     args = parser.parse_args()
 
@@ -44,27 +43,6 @@ def main():
     ANALYSIS_OUTPUT_PATH.mkdir(exist_ok=True)
 
     args.func()
-
-
-def run_threshold_subcommand():
-    MAX_N_SIZES['StrassenThreshold'] = 9
-
-    df = compare_strassen_thresholds()
-    print('Execution times of the StrassenThreshold algorithm with different thresholds')
-    print(df)
-
-    with open(ANALYSIS_OUTPUT_PATH / 'strassen_thresholds.md', 'w') as file:
-        file.write(df.to_markdown() + '\n')
-
-    plt.figure()
-    ax = sns.lineplot(data=df[-3:]) # Only show results for the three biggest matrices
-    ax.set(
-        title='Temps d\'exécution pour différents seuils avec l\'algorithme de Strassen',
-        xlabel=r'$N\quad(\mathrm{taille\ de\ la\ matrice} = 2^N)$',
-        ylabel='Temps d\'exécution (ms)',
-    )
-    ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
-    plt.savefig(ANALYSIS_OUTPUT_PATH / 'strassen_thresholds.png', bbox_inches='tight')
 
 
 def run_measure_subcommand():
@@ -196,16 +174,8 @@ def measure_execution_times(algorithms, trial_count=1, extra_args=[]):
     return df
 
 
-def compare_strassen_thresholds():
-    results = {}
 
-    for threshold in [2 ** i for i in range(2, 9)]:
-        print(f'Threshold: {threshold}')
-        df = measure_execution_times({'StrassenThreshold': 'strassenSeuil'}, trial_count=3, extra_args=['--threshold', str(threshold)])
-        results[threshold] = df['StrassenThreshold']
 
-    df = pd.DataFrame(results).rename_axis('N')
-    return df
 
 
 if __name__ == '__main__':
