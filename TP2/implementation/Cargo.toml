@@ -7,5 +7,6 @@ edition = "2018"
 
 [dependencies]
 itertools = "0.10.1"
-structopt = "0.3.17"
 petgraph = "0.6.0"
+rand = "0.8.4"
+structopt = "0.3.17"

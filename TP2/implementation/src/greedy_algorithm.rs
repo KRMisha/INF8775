@@ -30,7 +30,7 @@ pub fn solve_with_greedy(graph: &UnMatrix<u8, ()>) -> HashMap<NodeIndex, usize> 
                 .unwrap();
         node_colors.insert(current_node_index, color);
 
-        // Increment color count if color assigned to node was greather than any current color
+        // Increment color count if color assigned to node was greater than any current color
         let is_node_color_new = color == color_count;
         if is_node_color_new {
             color_count += 1;
