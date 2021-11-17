@@ -21,7 +21,7 @@ ALGORITHMS = {
 }
 MAX_GRAPH_SIZES = {
     'Greedy': None,
-    'BranchAndBound': None,
+    'BranchAndBound': 72,
     'Tabu': None,
 }
 THEORETICAL_COMPLEXITY_FUNCTIONS = {
@@ -30,8 +30,8 @@ THEORETICAL_COMPLEXITY_FUNCTIONS = {
         'string': '{}^3',
     },
     'BranchAndBound': {
-        'function': lambda x: np.power(2, x),
-        'string': '2^{}',
+        'function': lambda x: np.power(1.25, x) * x,
+        'string': '1.25^{0} \cdot {0}',
     },
     'Tabu': {
         'function': lambda x: np.power(x, 3),
@@ -70,7 +70,7 @@ def run_measure_subcommand():
     ax = sns.lineplot(data=df_execution_times)
     ax.set(
         title='Temps d\'exécution pour chaque algorithme',
-        xlabel='Nombre de sommets du graphe',
+        xlabel='Nombre de sommets du graphe ($n$)',
         ylabel='Temps d\'exécution (ms)',
     )
     ax.get_xaxis().set_major_locator(plt.MaxNLocator(integer=True))
@@ -103,7 +103,7 @@ def run_complexity_subcommand():
         legend_labels[i].set_text(fr'$\log_2(y) = {slope:.4f}\log_2(x){"+" if intercept > 0 else ""}{intercept:.2f}$')
     ax.set(
         title='Test de puissance',
-        xlabel=r'$\log_2(\mathrm{nombre\ de\ sommets\ du\ graphe})$',
+        xlabel=r'$\log_2(n)$',
         ylabel=r'$\log_2(\mathrm{temps\ d\'exécution})$',
     )
     plt.savefig(ANALYSIS_OUTPUT_PATH / 'power_test.png', bbox_inches='tight')
@@ -117,11 +117,10 @@ def run_complexity_subcommand():
         with sns.axes_style('whitegrid'):
             plt.figure()
             ax = sns.lineplot(x='GraphSize', y='y/h(x)', data=long_df_filtered, marker='o')
-            n_label = "\mathrm{{nombre\ de\ sommets\ du\ graphe}}"
             ax.set(
                 title=f'Test du rapport pour {algorithm_name}',
-                xlabel='nombre de sommets du graphe',
-                ylabel=fr'$\mathrm{{temps\ d\'exécution}}\ /\ {{{growth_function["string"].format(n_label)}}}$',
+                xlabel='Nombre de sommets du graphe ($n$)',
+                ylabel=fr'$\mathrm{{temps\ d\'exécution}}\ /\ {{{growth_function["string"].format("n")}}}$',
             )
             plt.savefig(ANALYSIS_OUTPUT_PATH / f'ratio_test_{algorithm_name.lower()}.png', bbox_inches='tight')
 
@@ -139,10 +138,9 @@ def run_complexity_subcommand():
             line_kws={'label': fr'$y = {slope:.4} \cdot {{{growth_function["string"].format("x")}}}{"+" if intercept > 0 else ""}{intercept:.4f}$'}
         )
         plt.legend()
-        n_label = "\mathrm{{nombre\ de\ sommets\ du\ graphe}}"
         ax.set(
             title=f'Test des constantes pour {algorithm_name}',
-            xlabel=fr'${{{growth_function["string"].format(n_label)}}}$',
+            xlabel=fr'${{{growth_function["string"].format("n")}}}$',
             ylabel='temps d\'exécution',
         )
         plt.savefig(ANALYSIS_OUTPUT_PATH / f'constants_test_{algorithm_name.lower()}.png', bbox_inches='tight')
