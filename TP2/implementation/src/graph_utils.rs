@@ -78,7 +78,8 @@ pub fn find_node_with_maximum_degree(node_degrees: &HashMap<NodeIndex, usize>) -
     let mut max_degree = 0usize;
 
     for (&index, &degree) in node_degrees {
-        if max_degree < degree {
+        // Find node with smallest degree, with smaller index in case of equality
+        if degree > max_degree || (degree == max_degree && index < max_degree_node_index) {
             max_degree = degree;
             max_degree_node_index = index;
         }
