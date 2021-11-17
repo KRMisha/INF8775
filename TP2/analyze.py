@@ -2,7 +2,6 @@
 
 import argparse
 from collections import defaultdict
-import math
 from pathlib import Path
 import re
 import statistics
@@ -25,10 +24,19 @@ MAX_GRAPH_SIZES = {
     'BranchAndBound': None,
     'Tabu': None,
 }
-THEORETICAL_COMPLEXITY_POWERS = {
-    'Conventional': 3,
-    'Strassen': math.log2(7),
-    'StrassenThreshold': math.log2(7),
+THEORETICAL_COMPLEXITY_FUNCTIONS = {
+    'Greedy': {
+        'function': lambda x: np.power(x, 3),
+        'string': '{}^3',
+    },
+    'BranchAndBound': {
+        'function': lambda x: np.power(2, x),
+        'string': '2^{}',
+    },
+    'Tabu': {
+        'function': lambda x: np.power(x, 3),
+        'string': '{}^3',
+    },
 }
 
 
@@ -81,22 +89,21 @@ def run_complexity_subcommand():
         )
 
     # Convert dataframe from wide form to long form for plotting with seaborn's lmplot
-    long_df = pd.melt(wide_df.reset_index(), id_vars=['N'], var_name='Algorithm', value_name='ExecutionTime')
-    long_df['2^N'] = 2 ** long_df['N']
-    long_df['log2(2^N)'] = np.log2(long_df['2^N'])
+    long_df = pd.melt(wide_df.reset_index(), id_vars=['GraphSize'], var_name='Algorithm', value_name='ExecutionTime')
+    long_df['log2(GraphSize)'] = np.log2(long_df['GraphSize'])
     long_df['log2(ExecutionTime)'] = np.log2(long_df['ExecutionTime'])
 
     # Power test
     plt.figure()
-    ax = sns.lmplot(x='log2(2^N)', y='log2(ExecutionTime)', hue='Algorithm', data=long_df) # Log-log plot
+    ax = sns.lmplot(x='log2(GraphSize)', y='log2(ExecutionTime)', hue='Algorithm', data=long_df) # Log-log plot
     legend_labels = plt.legend().get_texts()
     for i, algorithm_name in enumerate(ALGORITHMS): # Calculate linear regression equation
         long_df_filtered = long_df[long_df['Algorithm'] == algorithm_name].dropna()
-        slope, intercept, _, _, _ = stats.linregress(x=long_df_filtered['log2(2^N)'], y=long_df_filtered['log2(ExecutionTime)'])
+        slope, intercept, _, _, _ = stats.linregress(x=long_df_filtered['log2(GraphSize)'], y=long_df_filtered['log2(ExecutionTime)'])
         legend_labels[i].set_text(fr'$\log_2(y) = {slope:.4f}\log_2(x){"+" if intercept > 0 else ""}{intercept:.2f}$')
     ax.set(
         title='Test de puissance',
-        xlabel=r'$\log_2(\mathrm{taille\ de\ la\ matrice}) = \log_2(2^N) = N$',
+        xlabel=r'$\log_2(\mathrm{nombre\ de\ sommets\ du\ graphe})$',
         ylabel=r'$\log_2(\mathrm{temps\ d\'exécution})$',
     )
     plt.savefig(ANALYSIS_OUTPUT_PATH / 'power_test.png', bbox_inches='tight')
@@ -104,36 +111,38 @@ def run_complexity_subcommand():
     # Ratio test
     for algorithm_name in ALGORITHMS:
         long_df_filtered = long_df[long_df['Algorithm'] == algorithm_name].dropna()
-        power = THEORETICAL_COMPLEXITY_POWERS[algorithm_name]
-        long_df_filtered['y/h(x)'] = long_df_filtered['ExecutionTime'] / long_df_filtered['2^N'] ** power
+        growth_function = THEORETICAL_COMPLEXITY_FUNCTIONS[algorithm_name]
+        long_df_filtered['y/h(x)'] = long_df_filtered['ExecutionTime'] / growth_function['function'](long_df_filtered['GraphSize'])
 
         with sns.axes_style('whitegrid'):
             plt.figure()
-            ax = sns.lineplot(x='2^N', y='y/h(x)', data=long_df_filtered, marker='o')
+            ax = sns.lineplot(x='GraphSize', y='y/h(x)', data=long_df_filtered, marker='o')
+            n_label = "\mathrm{{nombre\ de\ sommets\ du\ graphe}}"
             ax.set(
                 title=f'Test du rapport pour {algorithm_name}',
-                xlabel=r'$\mathrm{taille\ de\ la\ matrice} = 2^N$',
-                ylabel=fr'$\mathrm{{temps\ d\'exécution}}\ /\ N^{{{round(power, 4)}}}$',
+                xlabel='nombre de sommets du graphe',
+                ylabel=fr'$\mathrm{{temps\ d\'exécution}}\ /\ {{{growth_function["string"].format(n_label)}}}$',
             )
             plt.savefig(ANALYSIS_OUTPUT_PATH / f'ratio_test_{algorithm_name.lower()}.png', bbox_inches='tight')
 
     # Constants test
     for algorithm_name in ALGORITHMS:
         long_df_filtered = long_df[long_df['Algorithm'] == algorithm_name].dropna()
-        power = THEORETICAL_COMPLEXITY_POWERS[algorithm_name]
-        long_df_filtered['h(x)'] = long_df_filtered['2^N'] ** power
+        growth_function = THEORETICAL_COMPLEXITY_FUNCTIONS[algorithm_name]
+        long_df_filtered['h(x)'] = growth_function['function'](long_df_filtered['GraphSize'])
 
         slope, intercept, _, _, _ = stats.linregress(x=long_df_filtered['h(x)'], y=long_df_filtered['ExecutionTime'])
 
         plt.figure()
         ax = sns.lmplot(
             x='h(x)', y='ExecutionTime', data=long_df_filtered,
-            line_kws={'label': fr'$y = {slope:.4} \cdot x^{{{round(power, 4)}}}{"+" if intercept > 0 else ""}{intercept:.4f}$'}
+            line_kws={'label': fr'$y = {slope:.4} \cdot {{{growth_function["string"].format("x")}}}{"+" if intercept > 0 else ""}{intercept:.4f}$'}
         )
         plt.legend()
+        n_label = "\mathrm{{nombre\ de\ sommets\ du\ graphe}}"
         ax.set(
             title=f'Test des constantes pour {algorithm_name}',
-            xlabel=fr'$\mathrm{{taille\ de\ la\ matrice}}^{{{round(power, 4)}}}$',
+            xlabel=fr'${{{growth_function["string"].format(n_label)}}}$',
             ylabel='temps d\'exécution',
         )
         plt.savefig(ANALYSIS_OUTPUT_PATH / f'constants_test_{algorithm_name.lower()}.png', bbox_inches='tight')
