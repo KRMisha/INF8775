@@ -1,7 +1,6 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use petgraph::matrix_graph::{NodeIndex, UnMatrix};
-use petgraph::visit::IntoNodeIdentifiers;
 
 use crate::graph_utils::{
     count_colors, find_node_with_maximum_degree, get_neighbor_unique_colors, get_node_degrees,
@@ -9,7 +8,6 @@ use crate::graph_utils::{
 use crate::greedy_algorithm::{find_node_with_greedy_choice, solve_with_greedy};
 
 pub fn solve_with_branch_and_bound(graph: &UnMatrix<(), ()>) -> HashMap<NodeIndex, usize> {
-    let node_set: HashSet<_> = graph.node_identifiers().collect();
     let node_degrees = get_node_degrees(graph);
 
     // Get initial best solution and upper bound using greedy algorithm
@@ -34,7 +32,7 @@ pub fn solve_with_branch_and_bound(graph: &UnMatrix<(), ()>) -> HashMap<NodeInde
             best_color_count = current_color_count;
         } else if current_color_count < best_color_count {
             let new_color_combinations =
-                extend_node_colors(graph, &node_set, &node_degrees, &current_node_colors);
+                extend_node_colors(graph, &node_degrees, &current_node_colors);
             for node_colors in new_color_combinations {
                 color_combinations_to_visit.push(node_colors)
             }
@@ -46,15 +44,13 @@ pub fn solve_with_branch_and_bound(graph: &UnMatrix<(), ()>) -> HashMap<NodeInde
 
 fn extend_node_colors(
     graph: &UnMatrix<(), ()>,
-    node_set: &HashSet<NodeIndex>,
     node_degrees: &HashMap<NodeIndex, usize>,
     node_colors: &HashMap<NodeIndex, usize>,
 ) -> Vec<HashMap<NodeIndex, usize>> {
     let mut color_combinations = Vec::new();
 
     // Get next uncolored node to color
-    let uncolored_node_index =
-        find_node_with_greedy_choice(graph, node_set, node_degrees, node_colors);
+    let uncolored_node_index = find_node_with_greedy_choice(graph, node_degrees, node_colors);
 
     // Generate new partial color combinations from next uncolored node
     let neighbor_colors = get_neighbor_unique_colors(graph, uncolored_node_index, node_colors);

@@ -8,7 +8,6 @@ use crate::graph_utils::{
 };
 
 pub fn solve_with_greedy(graph: &UnMatrix<(), ()>) -> HashMap<NodeIndex, usize> {
-    let node_set: HashSet<_> = graph.node_identifiers().collect();
     let node_degrees = get_node_degrees(graph);
 
     let mut node_colors = HashMap::new();
@@ -21,8 +20,7 @@ pub fn solve_with_greedy(graph: &UnMatrix<(), ()>) -> HashMap<NodeIndex, usize> 
     // Color all nodes
     while node_colors.len() < graph.node_count() {
         // Get next uncolored node to color
-        let current_node_index =
-            find_node_with_greedy_choice(graph, &node_set, &node_degrees, &node_colors);
+        let current_node_index = find_node_with_greedy_choice(graph, &node_degrees, &node_colors);
 
         // Assign smallest possible color to node
         let color =
@@ -42,19 +40,21 @@ pub fn solve_with_greedy(graph: &UnMatrix<(), ()>) -> HashMap<NodeIndex, usize> 
 
 pub fn find_node_with_greedy_choice(
     graph: &UnMatrix<(), ()>,
-    node_set: &HashSet<NodeIndex>,
     node_degrees: &HashMap<NodeIndex, usize>,
     node_colors: &HashMap<NodeIndex, usize>,
 ) -> NodeIndex {
     // Compute remaining uncolored nodes
     let colored_node_set: HashSet<_> = node_colors.keys().cloned().collect();
-    let uncolored_nodes_indexes: Vec<_> = node_set.difference(&colored_node_set).cloned().collect();
+    let uncolored_node_indexes: Vec<_> = graph
+        .node_identifiers()
+        .filter(|x| !colored_node_set.contains(x))
+        .collect();
 
     // Find node with max degree of saturation among uncolored nodes, with max number of neighbors in case of equality
-    let mut max_saturation_node_index = *uncolored_nodes_indexes.first().unwrap();
+    let mut max_saturation_node_index = uncolored_node_indexes[0];
     let mut max_saturation = 0usize;
 
-    for uncolored_node_index in uncolored_nodes_indexes {
+    for uncolored_node_index in uncolored_node_indexes {
         let saturation = get_neighbor_unique_colors(graph, uncolored_node_index, node_colors).len();
 
         if saturation < max_saturation {
