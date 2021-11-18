@@ -30,8 +30,8 @@ THEORETICAL_COMPLEXITY_FUNCTIONS = {
         'string': '{}^3',
     },
     'BranchAndBound': {
-        'function': lambda x: np.power(1.25, x) * x,
-        'string': '1.25^{0} \cdot {0}',
+        'function': lambda x: np.power(1.25, x),
+        'string': '1.25^{}',
     },
     'Tabu': {
         'function': lambda x: np.power(x, 3),
