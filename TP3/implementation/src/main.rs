@@ -6,7 +6,7 @@ mod cli_args;
 use cli_args::Cli;
 
 mod utils;
-use utils::load_graph;
+use utils::{load_graph, print_result};
 
 mod algorithm;
 use algorithm::solve;
@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if args.show_obstruction_count_only {
         // TODO
     } else {
-        // TODO
+        print_result(&result);
     }
 
     Ok(())

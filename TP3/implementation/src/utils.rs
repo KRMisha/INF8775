@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-use petgraph::graph::UnGraph;
+use petgraph::graph::{NodeIndex, UnGraph};
 
 pub fn load_graph(filename: &Path) -> Result<UnGraph<u16, ()>, Box<dyn Error>> {
     let file = File::open(filename)?;
@@ -32,9 +32,8 @@ pub fn load_graph(filename: &Path) -> Result<UnGraph<u16, ()>, Box<dyn Error>> {
             .map(|s| s.parse())
             .collect::<Result<Vec<_>, _>>()?;
 
-        // Convert from 1-indexed to 0-indexed nodes
         graph.add_edge(
-            (edge_indices[0] - 1).into(),
+            (edge_indices[0] - 1).into(), // Convert from 1-indexed to 0-indexed nodes
             (edge_indices[1] - 1).into(),
             (),
         );
@@ -43,6 +42,11 @@ pub fn load_graph(filename: &Path) -> Result<UnGraph<u16, ()>, Box<dyn Error>> {
     Ok(graph)
 }
 
-pub fn print_result() {
-    // TODO: Convert back from 0-indexed to 1-indexed
+pub fn print_result(node_indices: &Vec<NodeIndex>) {
+    let node_indices_str: String = node_indices
+        .iter()
+        .map(|n| (n.index() + 1).to_string()) // Convert back from 0-indexed to 1-indexed nodes
+        .collect::<Vec<_>>()
+        .join(" ");
+    println!("{}", node_indices_str);
 }
