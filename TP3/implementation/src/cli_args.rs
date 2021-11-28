@@ -9,5 +9,5 @@ pub struct Cli {
 
     /// Prints the full solution rather than just the number of students whose view is obstructed
     #[structopt(short = "p")]
-    pub show_obstruction_count_only: bool,
+    pub print_solution: bool,
 }

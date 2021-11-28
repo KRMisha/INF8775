@@ -6,7 +6,7 @@ mod cli_args;
 use cli_args::Cli;
 
 mod utils;
-use utils::{load_graph, print_result};
+use utils::{count_obstructions, load_graph, print_solution};
 
 mod algorithm;
 use algorithm::solve;
@@ -19,12 +19,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let graph = load_graph(&args.filename)?;
 
     // TODO: Loop
-    let result = solve(&graph);
+    let ordered_node_indices = solve(&graph);
 
-    if args.show_obstruction_count_only {
-        // TODO
+    if args.print_solution {
+        print_solution(&ordered_node_indices);
     } else {
-        print_result(&result);
+        let obstruction_count = count_obstructions(&graph, &ordered_node_indices);
+        println!("{}", obstruction_count);
     }
 
     Ok(())
