@@ -203,4 +203,3 @@ if __name__ == '__main__':
     objective = compute_objective(resolution_data[-1], instance_data[0])
     print("OK : la valeur de l'objectif de la dernière (ie, meilleure) solution fournie est de " + str(objective) + ".\n")
     print("Nombre de solutions reçues : " + str(len(resolution_data)))
-
