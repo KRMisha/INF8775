@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use petgraph::graph::{NodeIndex, NodeReferences, UnGraph};
 use petgraph::visit::IntoNodeIdentifiers;
 
@@ -51,15 +49,14 @@ fn get_ordered_starting_nodes(graph: &UnGraph<u16, ()>) -> Vec<NodeIndex> {
 }
 
 fn extend_path(graph: &UnGraph<u16, ()>, path: &[NodeIndex]) -> Vec<Vec<NodeIndex>> {
-    let path_node_set: HashSet<NodeIndex> = path.iter().cloned().collect();
-
     let mut extended_paths = Vec::new();
 
     // TODO: Consider extending path at either front or back of vector
     if let Some(&last_node_index) = path.last() {
+        // The hash set creation overhead is often worse than a linear lookup in this case
         let unvisited_neighbor_node_indices: Vec<_> = graph
             .neighbors(last_node_index)
-            .filter(|x| !path_node_set.contains(x))
+            .filter(|x| !path.contains(x))
             .collect();
         // TODO: Add extended paths in order of estimated relevance (heuristic)
         for neighbor_node_index in unvisited_neighbor_node_indices {
