@@ -11,6 +11,7 @@ use petgraph::visit::IntoNodeIdentifiers;
 // - Use sort based on a fuzzy mix between node weights and degrees (Euclidian distance to (0, 0) of degree-weight tuples?)
 // - Use Held-Karp table to speed up calculations of branch leaves when remaining nodes is below threshold (e.g. 5)
 //   This would allow quickly checking if a path exists, and cutting off iteration in those search paths earlier
+// - Use FxHashSet in extend_path() when the number of neighbors is greater than a certain threshold
 
 pub fn solve(graph: &UnGraph<u16, ()>) -> Vec<NodeIndex> {
     let hamiltonian_path = find_hamiltonian_path_with_backtracking(graph);
