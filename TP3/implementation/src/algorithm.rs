@@ -5,6 +5,13 @@ use itertools::Itertools;
 use petgraph::graph::{NodeIndex, NodeReferences, UnGraph};
 use petgraph::visit::IntoNodeIdentifiers;
 
+// Ideas:
+// - If using bidirectional path extension idea, extend with lighter nodes on the left, heavier on the right
+// - Use median weight (or close to) for start node
+// - Use sort based on a fuzzy mix between node weights and degrees (Euclidian distance to (0, 0) of degree-weight tuples?)
+// - Use Held-Karp table to speed up calculations of branch leaves when remaining nodes is below threshold (e.g. 5)
+//   This would allow quickly checking if a path exists, and cutting off iteration in those search paths earlier
+
 pub fn solve(graph: &UnGraph<u16, ()>) -> Vec<NodeIndex> {
     let hamiltonian_path = find_hamiltonian_path_with_backtracking(graph);
     match hamiltonian_path {
