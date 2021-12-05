@@ -42,11 +42,11 @@ pub fn load_graph(filename: &Path) -> Result<UnGraph<u16, ()>, Box<dyn Error>> {
     Ok(graph)
 }
 
-pub fn count_obstructions(graph: &UnGraph<u16, ()>, ordered_node_indices: &[NodeIndex]) -> u32 {
+pub fn count_obstructions(graph: &UnGraph<u16, ()>, solution_path: &[NodeIndex]) -> u32 {
     let mut obstruction_count = 0;
 
     let mut max_node_weight = 0;
-    for &node_index in ordered_node_indices {
+    for &node_index in solution_path {
         let node_weight = *graph.node_weight(node_index).unwrap();
         if node_weight < max_node_weight {
             obstruction_count += 1;
@@ -58,11 +58,11 @@ pub fn count_obstructions(graph: &UnGraph<u16, ()>, ordered_node_indices: &[Node
     obstruction_count
 }
 
-pub fn print_solution(ordered_node_indices: &[NodeIndex]) {
-    let node_indices_str: String = ordered_node_indices
+pub fn print_solution(solution_path: &[NodeIndex]) {
+    let solution_path_str = solution_path
         .iter()
         .map(|n| (n.index() + 1).to_string()) // Convert back from 0-indexed to 1-indexed nodes
         .collect::<Vec<_>>()
         .join(" ");
-    println!("{}", node_indices_str);
+    println!("{}", solution_path_str);
 }

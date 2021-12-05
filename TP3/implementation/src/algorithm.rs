@@ -1,9 +1,10 @@
-use std::cmp::Reverse;
 use std::collections::HashMap;
 
 use itertools::Itertools;
 use petgraph::graph::{NodeIndex, NodeReferences, UnGraph};
 use petgraph::visit::IntoNodeIdentifiers;
+
+use crate::utils::{count_obstructions, print_solution};
 
 // Ideas:
 // - If using bidirectional path extension idea, extend with lighter nodes on the left, heavier on the right
@@ -13,21 +14,7 @@ use petgraph::visit::IntoNodeIdentifiers;
 //   This would allow quickly checking if a path exists, and cutting off iteration in those search paths earlier
 // - Use FxHashSet in extend_path() when the number of neighbors is greater than a certain threshold
 
-pub fn solve(graph: &UnGraph<u16, ()>) -> Vec<NodeIndex> {
-    let hamiltonian_path = find_hamiltonian_path_with_backtracking(graph);
-    match hamiltonian_path {
-        Some(hamiltonian_path) => hamiltonian_path,
-        None => {
-            // TODO: Replace with Option return type
-            // or avoid this problem by integrating the multiple solution loop here
-            // or by making the solve function include the backtracking algorithm
-            eprintln!("Error: No path found");
-            Vec::new()
-        }
-    }
-}
-
-fn find_hamiltonian_path_with_backtracking(graph: &UnGraph<u16, ()>) -> Option<Vec<NodeIndex>> {
+pub fn solve_in_loop(graph: &UnGraph<u16, ()>, should_display_full_solution: bool) {
     // Precompute node degrees
     let node_degrees = get_node_degrees(graph);
 
@@ -38,19 +25,28 @@ fn find_hamiltonian_path_with_backtracking(graph: &UnGraph<u16, ()>) -> Option<V
     let ordered_starting_nodes = get_ordered_starting_nodes(graph);
     paths_to_visit.extend(ordered_starting_nodes.into_iter().rev().map(|n| vec![n]));
 
+    // Search for Hamiltonian paths with backtracking algorithm
     while let Some(current_path) = paths_to_visit.pop() {
         let is_path_complete = current_path.len() == graph.node_count();
         if is_path_complete {
-            // TODO: Yield multiple paths rather than returning on first solution (iterate to improve solution)
-            return Some(current_path);
+            // Print solution when found
+            // TODO: Only print if solution is better than best solution so far
+            if should_display_full_solution {
+                print_solution(&current_path);
+
+                // TODO: Remove always-on printing of obstruction count
+                let obstruction_count = count_obstructions(&graph, &current_path);
+                println!("Obstruction count: {}", obstruction_count);
+            } else {
+                let obstruction_count = count_obstructions(&graph, &current_path);
+                println!("{}", obstruction_count);
+            }
         }
 
         // Add extended paths in reverse order to pop and visit most promising paths first
         let extended_paths = extend_path(graph, &node_degrees, &current_path);
         paths_to_visit.extend(extended_paths.into_iter().rev());
     }
-
-    None
 }
 
 fn get_ordered_starting_nodes(graph: &UnGraph<u16, ()>) -> Vec<NodeIndex> {

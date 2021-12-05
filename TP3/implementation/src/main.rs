@@ -6,10 +6,10 @@ mod cli_args;
 use cli_args::Cli;
 
 mod utils;
-use utils::{count_obstructions, load_graph, print_solution};
+use utils::load_graph;
 
 mod algorithm;
-use algorithm::solve;
+use algorithm::solve_in_loop;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // Parse args
@@ -18,15 +18,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Load data as a graph
     let graph = load_graph(&args.filename)?;
 
-    // TODO: Loop
-    let ordered_node_indices = solve(&graph);
-
-    if args.print_solution {
-        print_solution(&ordered_node_indices);
-    } else {
-        let obstruction_count = count_obstructions(&graph, &ordered_node_indices);
-        println!("{}", obstruction_count);
-    }
+    // Loop until best solution is found
+    let ordered_node_indices = solve_in_loop(&graph, args.print_solution);
 
     Ok(())
 }
