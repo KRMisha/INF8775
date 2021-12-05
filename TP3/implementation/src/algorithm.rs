@@ -35,7 +35,7 @@ fn find_hamiltonian_path_with_backtracking(graph: &UnGraph<u16, ()>) -> Option<V
     let mut paths_to_visit = Vec::new();
 
     // Any node can act as the starting node for the search tree
-    let ordered_starting_nodes = get_ordered_starting_nodes(graph, &node_degrees);
+    let ordered_starting_nodes = get_ordered_starting_nodes(graph);
     paths_to_visit.extend(ordered_starting_nodes.into_iter().rev().map(|n| vec![n]));
 
     while let Some(current_path) = paths_to_visit.pop() {
@@ -53,14 +53,27 @@ fn find_hamiltonian_path_with_backtracking(graph: &UnGraph<u16, ()>) -> Option<V
     None
 }
 
-fn get_ordered_starting_nodes(
-    graph: &UnGraph<u16, ()>,
-    node_degrees: &HashMap<NodeIndex, u32>,
-) -> Vec<NodeIndex> {
-    // TODO: Select nodes in order of estimated relevance (heuristic)
-    // Median weight?
+fn get_ordered_starting_nodes(graph: &UnGraph<u16, ()>) -> Vec<NodeIndex> {
+    // Calculate median weight
+    let mut weights: Vec<_> = graph.node_weights().copied().collect();
+    weights.sort();
+    let middle_index = weights.len() / 2;
+    let median_weight = if weights.len() % 2 == 0 {
+        (weights[middle_index - 1] + weights[middle_index]) / 2
+    } else {
+        weights[middle_index]
+    };
+
+    // Sort nodes by weights nearest to the median
     let mut node_indices: Vec<_> = graph.node_identifiers().collect();
-    node_indices.sort_unstable_by_key(|n| Reverse(node_degrees.get(n)));
+    node_indices.sort_unstable_by_key(|n| {
+        let node_weight = *graph.node_weight(*n).unwrap();
+        if node_weight < median_weight {
+            median_weight - node_weight
+        } else {
+            node_weight - median_weight
+        }
+    });
     node_indices
 }
 
