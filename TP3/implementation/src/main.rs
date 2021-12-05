@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let graph = load_graph(&args.filename)?;
 
     // Loop until best solution is found
-    let ordered_node_indices = solve_in_loop(&graph, args.print_solution);
+    solve_in_loop(&graph, args.print_solution);
 
     Ok(())
 }
