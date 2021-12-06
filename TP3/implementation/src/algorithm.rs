@@ -33,35 +33,39 @@ pub fn solve_in_loop(graph: &UnGraph<u16, ()>, should_display_full_solution: boo
             .map(|n| (vec![n], iter::once(n).collect())),
     );
 
-    // Search for Hamiltonian paths with backtracking algorithm
+    // Search for Hamiltonian paths with branch and bound
     while let Some((current_path, current_path_set)) = paths_to_visit.pop() {
-        let is_path_complete = current_path.len() == graph.node_count();
-        // TODO: Branch-and-bound
-        if is_path_complete {
-            let obstruction_count = count_obstructions(&graph, &current_path);
-            if obstruction_count < min_obstruction_count {
-                min_obstruction_count = obstruction_count;
+        let obstruction_count = count_obstructions(&graph, &current_path);
 
-                // Print solution when found
-                if should_display_full_solution {
-                    print_solution(&current_path);
-
-                    // TODO: Remove always-on printing of obstruction count
-                    println!("Obstruction count: {}", obstruction_count);
-                } else {
-                    println!("{}", obstruction_count);
-                }
-            }
+        // Skip path search tree if the partial solution is worse than the current best solution
+        if obstruction_count >= min_obstruction_count {
+            continue;
         }
 
-        // Add extended paths in reverse order to pop and visit most promising paths first
-        let extended_paths = extend_path(
-            graph,
-            &ordered_node_neighbors,
-            &current_path,
-            &current_path_set,
-        );
-        paths_to_visit.extend(extended_paths.into_iter().rev());
+        // Check solution quality if Hamiltonian path is complete
+        let is_path_complete = current_path.len() == graph.node_count();
+        if is_path_complete {
+            min_obstruction_count = obstruction_count;
+
+            // Print solution when found
+            if should_display_full_solution {
+                print_solution(&current_path);
+
+                // TODO: Remove always-on printing of obstruction count
+                println!("Obstruction count: {}", obstruction_count);
+            } else {
+                println!("{}", obstruction_count);
+            }
+        } else {
+            // Add extended paths in reverse order to pop and visit most promising paths first
+            let extended_paths = extend_path(
+                graph,
+                &ordered_node_neighbors,
+                &current_path,
+                &current_path_set,
+            );
+            paths_to_visit.extend(extended_paths.into_iter().rev());
+        }
     }
 }
 
