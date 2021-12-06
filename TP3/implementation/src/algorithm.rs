@@ -15,9 +15,8 @@ use crate::utils::{count_obstructions, print_solution};
 // - Use FxHashSet in extend_path() when the number of neighbors is greater than a certain threshold (tinyset)
 
 pub fn solve_in_loop(graph: &UnGraph<u16, ()>, should_display_full_solution: bool) {
-    // Precompute node degrees and ordered node neighbors
-    let node_degrees = get_node_degrees(graph);
-    let ordered_node_neighbors = get_ordered_node_neighbors(graph, &node_degrees);
+    // Precompute order of exploration for node neighbors
+    let ordered_node_neighbors = get_ordered_node_neighbors(graph);
 
     // Number of obstructions of best solution so far
     let mut min_obstruction_count = graph.node_count() as u32;
@@ -42,17 +41,17 @@ pub fn solve_in_loop(graph: &UnGraph<u16, ()>, should_display_full_solution: boo
             let obstruction_count = count_obstructions(&graph, &current_path);
             if obstruction_count < min_obstruction_count {
                 min_obstruction_count = obstruction_count;
-                
+
                 // Print solution when found
                 if should_display_full_solution {
                     print_solution(&current_path);
-    
+
                     // TODO: Remove always-on printing of obstruction count
                     println!("Obstruction count: {}", obstruction_count);
                 } else {
                     println!("{}", obstruction_count);
                 }
-            }            
+            }
         }
 
         // Add extended paths in reverse order to pop and visit most promising paths first
@@ -67,40 +66,20 @@ pub fn solve_in_loop(graph: &UnGraph<u16, ()>, should_display_full_solution: boo
 }
 
 fn get_ordered_starting_nodes(graph: &UnGraph<u16, ()>) -> Vec<NodeIndex> {
-    // Calculate median weight
-    let mut weights: Vec<_> = graph.node_weights().copied().collect();
-    weights.sort();
-    let middle_index = weights.len() / 2;
-    let median_weight = if weights.len() % 2 == 0 {
-        (weights[middle_index - 1] + weights[middle_index]) / 2
-    } else {
-        weights[middle_index]
-    };
-
-    // Sort nodes by weights nearest to the median
+    // Sort nodes by increasing weight
     let mut node_indices: Vec<_> = graph.node_identifiers().collect();
-    node_indices.sort_unstable_by_key(|n| {
-        let node_weight = *graph.node_weight(*n).unwrap();
-        if node_weight < median_weight {
-            median_weight - node_weight
-        } else {
-            node_weight - median_weight
-        }
-    });
+    node_indices.sort_unstable_by_key(|&n| *graph.node_weight(n).unwrap());
     node_indices
 }
 
-fn get_ordered_node_neighbors(
-    graph: &UnGraph<u16, ()>,
-    node_degrees: &HashMap<NodeIndex, u32>,
-) -> FxHashMap<NodeIndex, Vec<NodeIndex>> {
+fn get_ordered_node_neighbors(graph: &UnGraph<u16, ()>) -> FxHashMap<NodeIndex, Vec<NodeIndex>> {
     let mut ordered_node_neighbors = FxHashMap::default();
 
-    // TODO: Add extended paths in order of estimated relevance (heuristic)
     for node_index in graph.node_identifiers() {
+        // Sort nodes by increasing weight
         let node_neighbors: Vec<_> = graph
             .neighbors(node_index)
-            .sorted_unstable_by_key(|n| node_degrees.get(n))
+            .sorted_unstable_by_key(|&n| *graph.node_weight(n).unwrap())
             .collect();
 
         ordered_node_neighbors.insert(node_index, node_neighbors);
@@ -162,57 +141,10 @@ fn extend_path(
         }
     }
 
-    // Try to extend path at front of vector if extending the path at the back of the vector failed
-    // and if the path is longer than a single node
-    if !extended_paths.is_empty() || path.len() < 2 {
-        return extended_paths;
-    }
-
-    if let Some(first_node_index) = path.first() {
-        let unvisited_neighbor_node_indices = ordered_node_neighbors
-            .get(first_node_index)
-            .unwrap()
-            .iter()
-            .filter(|x| !path_set.contains(x));
-
-        for &neighbor_node_index in unvisited_neighbor_node_indices {
-            // Unreacheable node heuristic
-            let mut has_unreachable_second_neighbor = false;
-            if unvisited_node_count > 2 {
-                let second_neighbors = graph
-                    .neighbors(neighbor_node_index)
-                    .filter(|x| !path_set.contains(x));
-                for second_neighbor_node_index in second_neighbors {
-                    let mut second_neighbor_unvisited_neighbor_node_count = 0;
-
-                    for third_neighbor_node_index in graph.neighbors(second_neighbor_node_index) {
-                        if !path_set.contains(&third_neighbor_node_index) {
-                            second_neighbor_unvisited_neighbor_node_count += 1;
-                            if second_neighbor_unvisited_neighbor_node_count > 1 {
-                                break;
-                            }
-                        }
-                    }
-
-                    if second_neighbor_unvisited_neighbor_node_count <= 1 {
-                        has_unreachable_second_neighbor = true;
-                        break;
-                    }
-                }
-            }
-
-            if !has_unreachable_second_neighbor {
-                let extended_path = [&[neighbor_node_index], path].concat();
-                let mut extended_path_set = path_set.clone();
-                extended_path_set.insert(neighbor_node_index);
-                extended_paths.push((extended_path, extended_path_set));
-            }
-        }
-    }
-
     extended_paths
 }
 
+#[allow(dead_code)]
 pub fn get_node_degrees(graph: &UnGraph<u16, ()>) -> HashMap<NodeIndex, u32> {
     let mut node_degrees = HashMap::new();
 
