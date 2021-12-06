@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use itertools::Itertools;
 use petgraph::graph::{NodeIndex, NodeReferences, UnGraph};
 use petgraph::visit::IntoNodeIdentifiers;
+use rustc_hash::FxHashSet;
 
 use crate::utils::{count_obstructions, print_solution};
 
@@ -80,17 +81,49 @@ fn extend_path(
 ) -> Vec<Vec<NodeIndex>> {
     let mut extended_paths = Vec::new();
 
+    // TODO: Measure if actually faster than linear lookup
+    let path_node_index_set: FxHashSet<_> = path.iter().copied().collect();
+
+    let unvisited_node_count = graph.node_count() - path.len();
+
     // Extend path at back of vector
     if let Some(&last_node_index) = path.last() {
-        // The hash set creation overhead is often worse than a linear lookup in this case
         let unvisited_neighbor_node_indices: Vec<_> = graph
             .neighbors(last_node_index)
-            .filter(|x| !path.contains(x))
+            .filter(|x| !path_node_index_set.contains(x))
             .sorted_unstable_by_key(|n| node_degrees.get(n))
             .collect();
+
         // TODO: Add extended paths in order of estimated relevance (heuristic)
         for neighbor_node_index in unvisited_neighbor_node_indices {
-            extended_paths.push([path, &[neighbor_node_index]].concat());
+            // Unreacheable node heuristic
+            let mut has_unreachable_second_neighbor = false;
+            if unvisited_node_count > 2 {
+                let second_neighbors = graph
+                    .neighbors(neighbor_node_index)
+                    .filter(|x| !path_node_index_set.contains(x));
+                for second_neighbor_node_index in second_neighbors {
+                    let mut second_neighbor_unvisited_neighbor_node_count = 0;
+
+                    for third_neighbor_node_index in graph.neighbors(second_neighbor_node_index) {
+                        if !path_node_index_set.contains(&third_neighbor_node_index) {
+                            second_neighbor_unvisited_neighbor_node_count += 1;
+                            if second_neighbor_unvisited_neighbor_node_count > 1 {
+                                break;
+                            }
+                        }
+                    }
+
+                    if second_neighbor_unvisited_neighbor_node_count <= 1 {
+                        has_unreachable_second_neighbor = true;
+                        break;
+                    }
+                }
+            }
+
+            if !has_unreachable_second_neighbor {
+                extended_paths.push([path, &[neighbor_node_index]].concat());
+            }
         }
     }
 
@@ -101,15 +134,42 @@ fn extend_path(
     }
 
     if let Some(&first_node_index) = path.first() {
-        // The hash set creation overhead is often worse than a linear lookup in this case
         let unvisited_neighbor_node_indices: Vec<_> = graph
             .neighbors(first_node_index)
-            .filter(|x| !path.contains(x))
+            .filter(|x| !path_node_index_set.contains(x))
             .sorted_unstable_by_key(|n| node_degrees.get(n))
             .collect();
+
         // TODO: Add extended paths in order of estimated relevance (heuristic)
         for neighbor_node_index in unvisited_neighbor_node_indices {
-            extended_paths.push([&[neighbor_node_index], path].concat());
+            // Unreacheable node heuristic
+            let mut has_unreachable_second_neighbor = false;
+            if unvisited_node_count > 2 {
+                let second_neighbors = graph
+                    .neighbors(neighbor_node_index)
+                    .filter(|x| !path_node_index_set.contains(x));
+                for second_neighbor_node_index in second_neighbors {
+                    let mut second_neighbor_unvisited_neighbor_node_count = 0;
+
+                    for third_neighbor_node_index in graph.neighbors(second_neighbor_node_index) {
+                        if !path_node_index_set.contains(&third_neighbor_node_index) {
+                            second_neighbor_unvisited_neighbor_node_count += 1;
+                            if second_neighbor_unvisited_neighbor_node_count > 1 {
+                                break;
+                            }
+                        }
+                    }
+
+                    if second_neighbor_unvisited_neighbor_node_count <= 1 {
+                        has_unreachable_second_neighbor = true;
+                        break;
+                    }
+                }
+            }
+
+            if !has_unreachable_second_neighbor {
+                extended_paths.push([&[neighbor_node_index], path].concat());
+            }
         }
     }
 
