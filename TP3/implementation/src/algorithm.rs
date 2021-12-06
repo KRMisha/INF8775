@@ -13,6 +13,7 @@ use crate::utils::{count_obstructions, print_solution};
 // - Use median weight (or close to) for start node
 // - Use sort based on a fuzzy mix between node weights and degrees (Euclidian distance to (0, 0) of degree-weight tuples?)
 // - Use FxHashSet in extend_path() when the number of neighbors is greater than a certain threshold (tinyset)
+// - Test with and without unreachable node heuristic to make sure of performance
 
 pub fn solve_in_loop(graph: &UnGraph<u16, ()>, should_display_full_solution: bool) {
     // Precompute order of exploration for node neighbors
@@ -35,37 +36,43 @@ pub fn solve_in_loop(graph: &UnGraph<u16, ()>, should_display_full_solution: boo
 
     // Search for Hamiltonian paths with branch and bound
     while let Some((current_path, current_path_set)) = paths_to_visit.pop() {
-        let obstruction_count = count_obstructions(&graph, &current_path);
+        // Only count obstructions if the path length is long enough (avoid counting unless necessary)
+        if current_path.len() >= min_obstruction_count as usize {
+            let obstruction_count = count_obstructions(&graph, &current_path);
 
-        // Skip path search tree if the partial solution is worse than the current best solution
-        if obstruction_count >= min_obstruction_count {
-            continue;
-        }
-
-        // Check solution quality if Hamiltonian path is complete
-        let is_path_complete = current_path.len() == graph.node_count();
-        if is_path_complete {
-            min_obstruction_count = obstruction_count;
-
-            // Print solution when found
-            if should_display_full_solution {
-                print_solution(&current_path);
-
-                // TODO: Remove always-on printing of obstruction count
-                println!("Obstruction count: {}", obstruction_count);
-            } else {
-                println!("{}", obstruction_count);
+            // Skip path search tree if the partial solution is worse than the current best solution
+            if obstruction_count >= min_obstruction_count {
+                continue;
             }
-        } else {
-            // Add extended paths in reverse order to pop and visit most promising paths first
-            let extended_paths = extend_path(
-                graph,
-                &ordered_node_neighbors,
-                &current_path,
-                &current_path_set,
-            );
-            paths_to_visit.extend(extended_paths.into_iter().rev());
+
+            // Check solution quality if Hamiltonian path is complete
+            let is_path_complete = current_path.len() == graph.node_count();
+            if is_path_complete {
+                min_obstruction_count = obstruction_count;
+
+                // Print solution when found
+                if should_display_full_solution {
+                    print_solution(&current_path);
+
+                    // TODO: Remove always-on printing of obstruction count
+                    println!("Obstruction count: {}", obstruction_count);
+                } else {
+                    println!("{}", obstruction_count);
+                }
+
+                // Skip extending paths for a complete path
+                continue;
+            }
         }
+
+        // Add extended paths in reverse order to pop and visit most promising paths first
+        let extended_paths = extend_path(
+            graph,
+            &ordered_node_neighbors,
+            &current_path,
+            &current_path_set,
+        );
+        paths_to_visit.extend(extended_paths.into_iter().rev());
     }
 }
 
