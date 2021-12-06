@@ -19,6 +19,9 @@ pub fn solve_in_loop(graph: &UnGraph<u16, ()>, should_display_full_solution: boo
     let node_degrees = get_node_degrees(graph);
     let ordered_node_neighbors = get_ordered_node_neighbors(graph, &node_degrees);
 
+    // Number of obstructions of best solution so far
+    let mut min_obstruction_count = graph.node_count() as u32;
+
     // Stack of partial paths to visit
     let mut paths_to_visit = Vec::new();
 
@@ -34,19 +37,22 @@ pub fn solve_in_loop(graph: &UnGraph<u16, ()>, should_display_full_solution: boo
     // Search for Hamiltonian paths with backtracking algorithm
     while let Some((current_path, current_path_set)) = paths_to_visit.pop() {
         let is_path_complete = current_path.len() == graph.node_count();
+        // TODO: Branch-and-bound
         if is_path_complete {
-            // Print solution when found
-            // TODO: Only print if solution is better than best solution so far
-            if should_display_full_solution {
-                print_solution(&current_path);
-
-                // TODO: Remove always-on printing of obstruction count
-                let obstruction_count = count_obstructions(&graph, &current_path);
-                println!("Obstruction count: {}", obstruction_count);
-            } else {
-                let obstruction_count = count_obstructions(&graph, &current_path);
-                println!("{}", obstruction_count);
-            }
+            let obstruction_count = count_obstructions(&graph, &current_path);
+            if obstruction_count < min_obstruction_count {
+                min_obstruction_count = obstruction_count;
+                
+                // Print solution when found
+                if should_display_full_solution {
+                    print_solution(&current_path);
+    
+                    // TODO: Remove always-on printing of obstruction count
+                    println!("Obstruction count: {}", obstruction_count);
+                } else {
+                    println!("{}", obstruction_count);
+                }
+            }            
         }
 
         // Add extended paths in reverse order to pop and visit most promising paths first
