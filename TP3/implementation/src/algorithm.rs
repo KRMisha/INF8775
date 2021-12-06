@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::iter;
 
 use itertools::Itertools;
 use petgraph::graph::{NodeIndex, NodeReferences, UnGraph};
@@ -24,10 +25,15 @@ pub fn solve_in_loop(graph: &UnGraph<u16, ()>, should_display_full_solution: boo
 
     // Any node can act as the starting node for the search tree
     let ordered_starting_nodes = get_ordered_starting_nodes(graph);
-    paths_to_visit.extend(ordered_starting_nodes.into_iter().rev().map(|n| vec![n]));
+    paths_to_visit.extend(
+        ordered_starting_nodes
+            .into_iter()
+            .rev()
+            .map(|n| (vec![n], iter::once(n).collect())),
+    );
 
     // Search for Hamiltonian paths with backtracking algorithm
-    while let Some(current_path) = paths_to_visit.pop() {
+    while let Some((current_path, current_path_set)) = paths_to_visit.pop() {
         let is_path_complete = current_path.len() == graph.node_count();
         if is_path_complete {
             // Print solution when found
@@ -45,7 +51,7 @@ pub fn solve_in_loop(graph: &UnGraph<u16, ()>, should_display_full_solution: boo
         }
 
         // Add extended paths in reverse order to pop and visit most promising paths first
-        let extended_paths = extend_path(graph, &node_degrees, &current_path);
+        let extended_paths = extend_path(graph, &node_degrees, &current_path, &current_path_set);
         paths_to_visit.extend(extended_paths.into_iter().rev());
     }
 }
@@ -78,11 +84,9 @@ fn extend_path(
     graph: &UnGraph<u16, ()>,
     node_degrees: &HashMap<NodeIndex, u32>,
     path: &[NodeIndex],
-) -> Vec<Vec<NodeIndex>> {
+    path_set: &FxHashSet<NodeIndex>,
+) -> Vec<(Vec<NodeIndex>, FxHashSet<NodeIndex>)> {
     let mut extended_paths = Vec::new();
-
-    // TODO: Measure if actually faster than linear lookup
-    let path_node_index_set: FxHashSet<_> = path.iter().copied().collect();
 
     let unvisited_node_count = graph.node_count() - path.len();
 
@@ -90,7 +94,7 @@ fn extend_path(
     if let Some(&last_node_index) = path.last() {
         let unvisited_neighbor_node_indices: Vec<_> = graph
             .neighbors(last_node_index)
-            .filter(|x| !path_node_index_set.contains(x))
+            .filter(|x| !path_set.contains(x))
             .sorted_unstable_by_key(|n| node_degrees.get(n))
             .collect();
 
@@ -101,12 +105,12 @@ fn extend_path(
             if unvisited_node_count > 2 {
                 let second_neighbors = graph
                     .neighbors(neighbor_node_index)
-                    .filter(|x| !path_node_index_set.contains(x));
+                    .filter(|x| !path_set.contains(x));
                 for second_neighbor_node_index in second_neighbors {
                     let mut second_neighbor_unvisited_neighbor_node_count = 0;
 
                     for third_neighbor_node_index in graph.neighbors(second_neighbor_node_index) {
-                        if !path_node_index_set.contains(&third_neighbor_node_index) {
+                        if !path_set.contains(&third_neighbor_node_index) {
                             second_neighbor_unvisited_neighbor_node_count += 1;
                             if second_neighbor_unvisited_neighbor_node_count > 1 {
                                 break;
@@ -122,7 +126,10 @@ fn extend_path(
             }
 
             if !has_unreachable_second_neighbor {
-                extended_paths.push([path, &[neighbor_node_index]].concat());
+                let extended_path = [path, &[neighbor_node_index]].concat();
+                let mut extended_path_set = path_set.clone();
+                extended_path_set.insert(neighbor_node_index);
+                extended_paths.push((extended_path, extended_path_set));
             }
         }
     }
@@ -136,7 +143,7 @@ fn extend_path(
     if let Some(&first_node_index) = path.first() {
         let unvisited_neighbor_node_indices: Vec<_> = graph
             .neighbors(first_node_index)
-            .filter(|x| !path_node_index_set.contains(x))
+            .filter(|x| !path_set.contains(x))
             .sorted_unstable_by_key(|n| node_degrees.get(n))
             .collect();
 
@@ -147,12 +154,12 @@ fn extend_path(
             if unvisited_node_count > 2 {
                 let second_neighbors = graph
                     .neighbors(neighbor_node_index)
-                    .filter(|x| !path_node_index_set.contains(x));
+                    .filter(|x| !path_set.contains(x));
                 for second_neighbor_node_index in second_neighbors {
                     let mut second_neighbor_unvisited_neighbor_node_count = 0;
 
                     for third_neighbor_node_index in graph.neighbors(second_neighbor_node_index) {
-                        if !path_node_index_set.contains(&third_neighbor_node_index) {
+                        if !path_set.contains(&third_neighbor_node_index) {
                             second_neighbor_unvisited_neighbor_node_count += 1;
                             if second_neighbor_unvisited_neighbor_node_count > 1 {
                                 break;
@@ -168,7 +175,10 @@ fn extend_path(
             }
 
             if !has_unreachable_second_neighbor {
-                extended_paths.push([&[neighbor_node_index], path].concat());
+                let extended_path = [&[neighbor_node_index], path].concat();
+                let mut extended_path_set = path_set.clone();
+                extended_path_set.insert(neighbor_node_index);
+                extended_paths.push((extended_path, extended_path_set));
             }
         }
     }
