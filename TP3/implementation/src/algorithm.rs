@@ -3,7 +3,8 @@ use std::iter;
 use itertools::Itertools;
 use petgraph::graph::{NodeIndex, UnGraph};
 use petgraph::visit::IntoNodeIdentifiers;
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
+use tinyset::SetU32;
 
 use crate::utils::{count_obstructions, print_solution};
 
@@ -23,7 +24,7 @@ pub fn solve_in_loop(graph: &UnGraph<u16, ()>, should_display_full_solution: boo
         ordered_starting_nodes
             .into_iter()
             .rev()
-            .map(|n| (vec![n], iter::once(n).collect())),
+            .map(|n| (vec![n], iter::once(n.index() as u32).collect())),
     );
 
     // Search for Hamiltonian paths with branch and bound
@@ -95,8 +96,8 @@ fn extend_path(
     graph: &UnGraph<u16, ()>,
     ordered_node_neighbors: &FxHashMap<NodeIndex, Vec<NodeIndex>>,
     path: &[NodeIndex],
-    path_set: &FxHashSet<NodeIndex>,
-) -> Vec<(Vec<NodeIndex>, FxHashSet<NodeIndex>)> {
+    path_set: &SetU32,
+) -> Vec<(Vec<NodeIndex>, SetU32)> {
     let mut extended_paths = Vec::new();
 
     let unvisited_node_count = graph.node_count() - path.len();
@@ -107,7 +108,7 @@ fn extend_path(
             .get(last_node_index)
             .unwrap()
             .iter()
-            .filter(|x| !path_set.contains(x));
+            .filter(|x| !path_set.contains(x.index() as u32));
 
         for &neighbor_node_index in unvisited_neighbor_node_indices {
             // Unreacheable node heuristic
@@ -115,12 +116,12 @@ fn extend_path(
             if unvisited_node_count > 2 {
                 let second_neighbors = graph
                     .neighbors(neighbor_node_index)
-                    .filter(|x| !path_set.contains(x));
+                    .filter(|x| !path_set.contains(x.index() as u32));
                 for second_neighbor_node_index in second_neighbors {
                     let mut second_neighbor_unvisited_neighbor_node_count = 0;
 
                     for third_neighbor_node_index in graph.neighbors(second_neighbor_node_index) {
-                        if !path_set.contains(&third_neighbor_node_index) {
+                        if !path_set.contains(third_neighbor_node_index.index() as u32) {
                             second_neighbor_unvisited_neighbor_node_count += 1;
                             if second_neighbor_unvisited_neighbor_node_count > 1 {
                                 break;
@@ -138,7 +139,7 @@ fn extend_path(
             if !has_unreachable_second_neighbor {
                 let extended_path = [path, &[neighbor_node_index]].concat();
                 let mut extended_path_set = path_set.clone();
-                extended_path_set.insert(neighbor_node_index);
+                extended_path_set.insert(neighbor_node_index.index() as u32);
                 extended_paths.push((extended_path, extended_path_set));
             }
         }
