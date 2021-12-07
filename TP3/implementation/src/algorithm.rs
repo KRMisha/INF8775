@@ -1,9 +1,9 @@
 use std::iter;
 
+use hashbrown::HashMap;
 use itertools::Itertools;
 use petgraph::graph::{NodeIndex, UnGraph};
 use petgraph::visit::IntoNodeIdentifiers;
-use rustc_hash::FxHashMap;
 use tinyset::Set64;
 
 use crate::utils::{count_obstructions, print_solution};
@@ -76,8 +76,8 @@ fn get_ordered_starting_nodes(graph: &UnGraph<u16, ()>) -> Vec<NodeIndex> {
     node_indices
 }
 
-fn get_ordered_node_neighbors(graph: &UnGraph<u16, ()>) -> FxHashMap<NodeIndex, Vec<NodeIndex>> {
-    let mut ordered_node_neighbors = FxHashMap::default();
+fn get_ordered_node_neighbors(graph: &UnGraph<u16, ()>) -> HashMap<NodeIndex, Vec<NodeIndex>> {
+    let mut ordered_node_neighbors = HashMap::new();
 
     for node_index in graph.node_identifiers() {
         // Sort nodes by increasing weight
@@ -94,7 +94,7 @@ fn get_ordered_node_neighbors(graph: &UnGraph<u16, ()>) -> FxHashMap<NodeIndex, 
 
 fn extend_path(
     graph: &UnGraph<u16, ()>,
-    ordered_node_neighbors: &FxHashMap<NodeIndex, Vec<NodeIndex>>,
+    ordered_node_neighbors: &HashMap<NodeIndex, Vec<NodeIndex>>,
     path: &[NodeIndex],
     path_set: &Set64<u32>,
 ) -> Vec<(Vec<NodeIndex>, Set64<u32>)> {
