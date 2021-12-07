@@ -4,7 +4,7 @@ use itertools::Itertools;
 use petgraph::graph::{NodeIndex, UnGraph};
 use petgraph::visit::IntoNodeIdentifiers;
 use rustc_hash::FxHashMap;
-use tinyset::SetU32;
+use tinyset::Set64;
 
 use crate::utils::{count_obstructions, print_solution};
 
@@ -96,8 +96,8 @@ fn extend_path(
     graph: &UnGraph<u16, ()>,
     ordered_node_neighbors: &FxHashMap<NodeIndex, Vec<NodeIndex>>,
     path: &[NodeIndex],
-    path_set: &SetU32,
-) -> Vec<(Vec<NodeIndex>, SetU32)> {
+    path_set: &Set64<u32>,
+) -> Vec<(Vec<NodeIndex>, Set64<u32>)> {
     let mut extended_paths = Vec::new();
 
     let unvisited_node_count = graph.node_count() - path.len();
