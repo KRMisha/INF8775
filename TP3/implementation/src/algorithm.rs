@@ -1,19 +1,11 @@
-use std::collections::HashMap;
 use std::iter;
 
 use itertools::Itertools;
-use petgraph::graph::{NodeIndex, NodeReferences, UnGraph};
+use petgraph::graph::{NodeIndex, UnGraph};
 use petgraph::visit::IntoNodeIdentifiers;
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::utils::{count_obstructions, print_solution};
-
-// Ideas:
-// - If using bidirectional path extension idea, extend with lighter nodes on the left, heavier on the right
-// - Use median weight (or close to) for start node
-// - Use sort based on a fuzzy mix between node weights and degrees (Euclidian distance to (0, 0) of degree-weight tuples?)
-// - Use FxHashSet in extend_path() when the number of neighbors is greater than a certain threshold (tinyset)
-// - Test with and without unreachable node heuristic to make sure of performance
 
 pub fn solve_in_loop(graph: &UnGraph<u16, ()>, should_display_full_solution: bool) {
     // Precompute order of exploration for node neighbors
