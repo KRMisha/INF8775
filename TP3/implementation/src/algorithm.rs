@@ -154,20 +154,3 @@ fn extend_path(
 
     extended_paths
 }
-
-#[allow(dead_code)]
-pub fn get_node_degrees(graph: &UnGraph<u16, ()>) -> HashMap<NodeIndex, u32> {
-    let mut node_degrees = HashMap::new();
-
-    for node_index in graph.node_identifiers() {
-        let degree = graph.edges(node_index).count() as u32;
-        node_degrees.insert(node_index, degree);
-    }
-
-    node_degrees
-}
-
-#[allow(dead_code)]
-fn find_node_with_minimum_weight(nodes: NodeReferences<u16>) -> NodeIndex {
-    nodes.min_by_key(|&(_, weight)| weight).unwrap().0.into()
-}
