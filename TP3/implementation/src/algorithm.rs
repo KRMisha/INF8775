@@ -46,9 +46,6 @@ pub fn solve_in_loop(graph: &UnGraph<u16, ()>, should_display_full_solution: boo
                 // Print solution when found
                 if should_display_full_solution {
                     print_solution(&current_path);
-
-                    // TODO: Remove always-on printing of obstruction count
-                    println!("Obstruction count: {}", obstruction_count);
                 } else {
                     println!("{}", obstruction_count);
                 }
